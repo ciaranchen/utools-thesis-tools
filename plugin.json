@@ -1,0 +1,18 @@
+{
+	"preload": "preload.js",
+	"logo": "logo.png",
+	"features": [{
+		"code": "letpub",
+		"explain": "查看期刊分区号",
+		"cmds": ["th", "lw", "letpub"]
+	}, {
+		"code": "article_replace",
+		"explain": "替换论文的换行",
+		"cmds": [{
+			"type": "regex",
+			"label": "替换论文换行",
+			"match": "/.*\n.*/i",
+			"minLength": 1
+		}]
+	}]
+}

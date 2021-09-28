@@ -57,6 +57,24 @@ function do_search(searchWord, callbackSetList) {
   });
 }
 
+function dbc2sbc(str) {
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+      let charCode = str.charCodeAt(i);
+      if ((charCode >= 65296 && charCode <= 65305) || //0~9
+          (charCode >= 65313 && charCode <= 65338) || //A~Z
+          (charCode >= 65345 && charCode <= 65370)) { //a~z
+          result += String.fromCharCode(charCode - 65248)
+      } else if (charCode == 12288) { //space
+          result += String.fromCharCode(32);
+      } else {
+          result += str[i];
+      }
+  }
+  return result;
+}
+
+
 let letpub_timeout;
 
 window.exports = {
@@ -84,15 +102,15 @@ window.exports = {
         window.utools.hideMainWindow();
         let res = '';
         let text = action.payload;
+        text = dbc2sbc(text); // 全半角转换
         let en_letter_match = text.match(/[a-zA-z]/g);
         let en_letter_cnt = en_letter_match ? letter_match.length : 0;
         // console.log(letter_count);
         let isEnglish = en_letter_cnt > (text.length / 2); // is English or not?
-        if (isEnglish) {
-          // TODO: 处理连字符
-          res = text.replaceAll('\r\n', ' ').replaceAll('\n', ' ');
-        } else {
-          res = text.replaceAll('\r\n', '').replaceAll('\n', '');
+        if (isEnglish) { // English mode
+          res = text.replaceAll(/\r?\n/, ' ').replaceAll('- ', '');
+        } else { // Chinese mode
+          res = text.replaceAll(/\r?\n/, '');
         }
         window.utools.copyText(res);
         window.utools.outPlugin()

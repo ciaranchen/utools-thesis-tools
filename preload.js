@@ -2,6 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 
 let base_url = "https://www.letpub.com.cn/"
+
 function parse_letpub_results(text) {
   let $ = cheerio.load(text);
   trs = $("#yxyz_content > table.table_yjfx > tbody > tr:gt(1)");
@@ -29,35 +30,42 @@ function parse_letpub_results(text) {
   return res.get();
 }
 
+function do_search(searchWord, callbackSetList) {
+  if (!searchWord) return callbackSetList();
+  searchWord = searchWord.toLowerCase();
+  axios({
+    url: 'https://www.letpub.com.cn/index.php?page=journalapp&view=search',
+    method: 'post',
+    data: {
+      searchname: searchWord,
+      view: "search",
+      searchsort: "relevance"
+    },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    transformRequest: [function (data) {
+      let ret = ''
+      for (let it in data) {
+        ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+      }
+      return ret
+    }],
+  }).then(response => {
+    const data = response.data;
+    callbackSetList(parse_letpub_results(data));
+  });
+}
+
+let letpub_timeout;
+
 window.exports = {
   'letpub': {
     mode: 'list',
     args: {
       search: (action, searchWord, callbackSetList) => {
-        if (!searchWord) return callbackSetList()
-        searchWord = searchWord.toLowerCase()
-        axios({
-          url: 'https://www.letpub.com.cn/index.php?page=journalapp&view=search',
-          method: 'post',
-          data: {
-            searchname: searchWord,
-            view: "search",
-            searchsort: "relevance"
-          },
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          transformRequest: [function (data) {
-            let ret = ''
-            for (let it in data) {
-              ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
-            }
-            return ret
-          }],
-        }).then(response => {
-          const data = response.data;
-          callbackSetList(parse_letpub_results(data));
-        });
+        clearTimeout(letpub_timeout); // 等待0.5秒无后续输入后，再进行查询。
+        letpub_timeout = setTimeout(do_search, 500, searchWord, callbackSetList);
       },
       select: (action, itemData) => {
         window.utools.hideMainWindow()
@@ -77,9 +85,9 @@ window.exports = {
         let res = '';
         let text = action.payload;
         let en_letter_match = text.match(/[a-zA-z]/g);
-        let en_letter_cnt = en_letter_match?letter_match.length: 0;
+        let en_letter_cnt = en_letter_match ? letter_match.length : 0;
         // console.log(letter_count);
-        let isEnglish = en_letter_cnt > (text.length/2); // is English or not?
+        let isEnglish = en_letter_cnt > (text.length / 2); // is English or not?
         if (isEnglish) {
           // TODO: 处理连字符
           res = text.replaceAll('\r\n', ' ').replaceAll('\n', ' ');

@@ -113,7 +113,7 @@ window.exports = {
           res = text.replaceAll(/\r?\n/g, '');
         }
         window.utools.copyText(res);
-        // window.utools.outPlugin()
+        window.utools.outPlugin()
       }
     }
   }

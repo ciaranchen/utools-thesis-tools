@@ -1,6 +1,6 @@
 # uTools_thesisTools 学术工具集
 
-一些我可能在查看论文的时候产生的诡异需求。
+一些解决在查看论文中可能产生的诡异需求的工具。
 
 ## Letpub
 
@@ -22,9 +22,15 @@
 
 <!-- TODO: 处理uTools插件中来自应用的情况。 -->
 
+## 建议
+
+您的建议非常宝贵。如果您有任何新功能或者改进的建议，可以在uTools的评论区留言，我会尽力回复。
+
+代码目前开源在：[coding.net](https://ciaranchen.coding.net/public/dotfiles/utools_thesis_tools/git/files)
+
 ## TODO
 
-[] 知网查是否为中科院核心
-[] EngineVillage查是否为EI
-[] 常见引用格式转换。
-[] 论文谷歌学术快速查询
+- 知网查是否为中科院核心
+- EngineVillage查是否为EI
+- 常见引用格式转换。
+- 论文谷歌学术快速查询

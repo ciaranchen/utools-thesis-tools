@@ -90,12 +90,12 @@ window.exports = {
         if (itemData.title != "更多内容") {
           window.utools.copyText(itemData.title);
         }
-        require('electron').shell.openExternal(itemData.url)
+        window.utools.shellOpenExternal(itemData.url);
         window.utools.outPlugin();
       }
     }
   },
-  'article_replace': {
+  'pdf_replace': {
     mode: 'none',
     args: {
       enter: (action) => {

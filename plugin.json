@@ -6,20 +6,19 @@
 			"code": "letpub",
 			"explain": "查看期刊分区号",
 			"cmds": [
-				"th",
-				"lw",
+				"thesis",
 				"letpub"
 			]
 		},
 		{
-			"code": "article_replace",
-			"explain": "替换论文的换行",
+			"code": "pdf_replace",
+			"explain": "替换pdf的换行",
 			"cmds": [
-				"replace",
 				{
 					"type": "regex",
 					"label": "替换pdf换行",
-					"match": "/.{20,}/i"
+					"match": "/.{5,}\\r\\n.{5,}/i",
+					"minLength": 20
 				},
 				{
 					"type": "window",

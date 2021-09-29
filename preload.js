@@ -104,16 +104,16 @@ window.exports = {
         let text = action.payload;
         text = dbc2sbc(text); // 全半角转换
         let en_letter_match = text.match(/[a-zA-z]/g);
-        let en_letter_cnt = en_letter_match ? letter_match.length : 0;
+        let en_letter_cnt = en_letter_match ? en_letter_match.length : 0;
         // console.log(letter_count);
         let isEnglish = en_letter_cnt > (text.length / 2); // is English or not?
         if (isEnglish) { // English mode
-          res = text.replaceAll(/\r?\n/, ' ').replaceAll('- ', '');
+          res = text.replaceAll(/\r?\n/g, ' ').replaceAll('- ', '');
         } else { // Chinese mode
-          res = text.replaceAll(/\r?\n/, '');
+          res = text.replaceAll(/\r?\n/g, '');
         }
         window.utools.copyText(res);
-        window.utools.outPlugin()
+        // window.utools.outPlugin()
       }
     }
   }

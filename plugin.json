@@ -15,11 +15,11 @@
 			"code": "article_replace",
 			"explain": "替换论文的换行",
 			"cmds": [
+				"replace",
 				{
 					"type": "regex",
-					"label": "替换论文换行",
-					"match": "/.*\n.*/i",
-					"minLength": 1
+					"label": "替换pdf换行",
+					"match": "/.{20,}/i"
 				},
 				{
 					"type": "window",

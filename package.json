@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "一些学术小工具。",
   "scripts": {
-    "build": "if not exist dist mkdir dist && copy plugin.json dist /Y && copy preload.js dist /Y && copy logo.png dist /Y && if not exist dist\\node_modules mkdir dist\\node_modules && Xcopy /E /I node_modules dist\\node_modules" 
+    "update": "copy plugin.json dist /Y && copy preload.js dist /Y",
+    "build": "if not exist dist mkdir dist && copy plugin.json dist /Y && copy preload.js dist /Y && copy logo.png dist /Y && if not exist dist\\node_modules mkdir dist\\node_modules && Xcopy /E /I node_modules dist\\node_modules"
   },
   "author": "",
   "license": "ISC",

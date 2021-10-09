@@ -17,21 +17,52 @@
 				{
 					"type": "regex",
 					"label": "替换pdf换行",
-					"match": "/.{5,}\\r\\n.{5,}/i",
+					"match": "/.*\\r\\n.*/i",
 					"minLength": 20
-				},
+				}
+			]
+		},
+		{
+			"code": "unknown_cite",
+			"explain": "解析引用",
+			"cmds": [
 				{
-					"type": "window",
-					"label": "pdf应用替换复制内容",
-					"match": {
-						"app": [
-							"AcroRd32.exe",
-							"SumatraPDF.exe"
-						],
-						"class": [
-							"AcrobatSDIWindow"
-						]
-					}
+					"type": "over",
+					"label": "未知引用",
+					"minLength": 10
+			}
+			]
+		},
+		{
+			"code": "gbt_cite",
+			"explain": "正则匹配有可能不准确。",
+			"cmds": [
+				{
+					"type": "regex",
+					"label": "解析GB/T 7714引用",
+					"match": "/(.*?)\\.(.*?)\\[([JMCD])\\]\\.(.*,\\s?(\\d{4}).*)$/i"
+				}
+			]
+		},
+		{
+			"code": "apa_cite",
+			"explain": "正则匹配有可能不准确。",
+			"cmds": [
+				{
+					"type": "regex",
+					"label": "解析APA引用",
+					"match": "/.*?\\.\\s?\\(\\d{4}\\)\\.(.*?)\\.(.*)$/i"
+				}
+			]
+		},
+		{
+			"code": "mla_cite",
+			"explain": "正则匹配有可能不准确。",
+			"cmds": [
+				{
+					"type": "regex",
+					"label": "解析MLA引用",
+					"match": "/(.*?)\\.\\s?\"(.*?)\"\\s?(.*?\\((\\d{4})\\).*?)$/i"
 				}
 			]
 		}

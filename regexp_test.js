@@ -19,7 +19,7 @@ function harvard_style(sentence) {
 
 // GB/T 7714
 function gbt_style(sentence) {
-  const gbt_match = /(.*?)\.(.*?)\[(.)\]\.(.*,\s?(\d{4}).*)$/i
+  const gbt_match = /(.*?)\.(.*?)\[([JMCD])\]\.(.*,\s?(\d{4}).*)$/i
   const found = sentence.match(gbt_match);
   // console.log(found);
   return found ? {
@@ -58,7 +58,7 @@ function apa_style(sentence) {
 }
 
 function cite_parse(input) {
-  style_functions = [harvard_style, gbt_style, mla_style, apa_style];
+  let style_functions = [harvard_style, gbt_style, mla_style, apa_style];
   for (let i = 0; i < style_functions.length; i++) {
     let res = style_functions[i](input);
 

@@ -1,7 +1,11 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
+
+// code for letpub
+let letpub_timeout;
 let base_url = "https://www.letpub.com.cn/"
+
 
 function parse_letpub_results(text) {
   let $ = cheerio.load(text);
@@ -57,26 +61,137 @@ function do_search(searchWord, callbackSetList) {
   });
 }
 
+// code for pdf_replace
 function dbc2sbc(str) {
   let result = '';
   for (let i = 0; i < str.length; i++) {
-      let charCode = str.charCodeAt(i);
-      if ((charCode >= 65296 && charCode <= 65305) || //0~9
-          (charCode >= 65313 && charCode <= 65338) || //A~Z
-          (charCode >= 65345 && charCode <= 65370)) { //a~z
-          result += String.fromCharCode(charCode - 65248)
-      } else if (charCode == 12288) { //space
-          result += String.fromCharCode(32);
-      } else {
-          result += str[i];
-      }
+    let charCode = str.charCodeAt(i);
+    if ((charCode >= 65296 && charCode <= 65305) || //0~9
+      (charCode >= 65313 && charCode <= 65338) || //A~Z
+      (charCode >= 65345 && charCode <= 65370)) { //a~z
+      result += String.fromCharCode(charCode - 65248)
+    } else if (charCode == 12288) { //space
+      result += String.fromCharCode(32);
+    } else {
+      result += str[i];
+    }
   }
   return result;
 }
 
 
-let letpub_timeout;
+// code for cite_parse
+// 暂时不考虑使用机器学习方法。
+String.prototype.trim = function () {
+  return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+}
 
+// Harvard style
+function harvard_style(sentence) {
+  const harvard_match = /(.*),\s?(\d{4})\.(.*?)\.(.*)/i
+  const found = sentence.match(harvard_match);
+  // console.log(found);
+  return found ? {
+    author: found[1],
+    year: found[2],
+    title: found[3],
+    info: found[4]
+  } : null;
+}
+
+// GB/T 7714
+function gbt_style(sentence) {
+  const gbt_match = /(.*?)\.(.*?)\[([JMCD])\]\.(.*,\s?(\d{4}).*)$/i;
+  const found = sentence.match(gbt_match);
+  // console.log(found);
+  return found ? {
+    author: found[1],
+    year: found[5],
+    title: found[2],
+    info: found[4],
+    type: found[3]
+  } : null;
+}
+
+// MLA
+function mla_style(sentence) {
+  const mla_match = /(.*?)\.\s?"(.*?)"\s?(.*?\((\d{4})\).*?)$/i
+  const found = sentence.match(mla_match);
+  // console.log(found);
+  return found ? {
+    author: found[1],
+    year: found[4],
+    title: found[2],
+    info: found[3],
+  } : null;
+}
+
+// APA
+function apa_style(sentence) {
+  const apa_match = /(.*?)\.\s?\((\d{4})\)\.(.*?)\.(.*)$/i
+  const found = sentence.match(apa_match);
+  // console.log(found);
+  return found ? {
+    author: found[1],
+    year: found[2],
+    title: found[3],
+    info: found[4],
+  } : null;
+}
+
+function generate_info(res, cite_style) {
+  return [{
+    title: '标题',
+    description: res.title,
+    cite: cite_style
+  }, {
+    title: '作者',
+    description: res.author,
+    cite: cite_style
+  }, {
+    title: '年份',
+    description: res.year,
+    cite: cite_style
+  }, {
+    title: '其他信息',
+    description: res.info,
+    cite: cite_style
+  }]
+}
+
+function select_cite_information(itemData) {
+  window.utools.hideMainWindow();
+  window.utools.copyText(itemData.description);
+  window.utools.outPlugin();
+}
+
+// cite_parse windows_export_function
+let style_functions = [harvard_style, gbt_style, mla_style, apa_style];
+let cite_map = {
+  harvard_cite: harvard_style,
+  gbt_cite: gbt_style,
+  mla_cite: mla_style,
+  apa_cite: apa_style
+};
+let cite_parse_export = {
+  mode: 'list',
+  args: {
+    enter: function (action, callbackSetList) {
+      let code = action.code;
+      let text = action.payload;
+      console.log(text);
+      console.log(code);
+      let res = cite_map[code](text);
+      console.log(res);
+      callbackSetList(generate_info(res, code));
+    },
+    select: function (action, itemData) {
+      select_cite_information(itemData);
+    }
+  }
+}
+
+// window export.
 window.exports = {
   'letpub': {
     mode: 'list',
@@ -116,5 +231,42 @@ window.exports = {
         window.utools.outPlugin()
       }
     }
-  }
+  },
+  "unknown_cite": {
+    mode: 'list',
+    args: {
+      enter: function (action, callbackSetList) {
+        let text = action.payload;
+        console.log(text);
+        text = text.replaceAll('．', '.').replaceAll('。', '.').replaceAll('，', ', ');
+        text = text.replaceAll('［', '[').replaceAll('］', ']');
+        text = text.replace(/^[\(\[]\d+[\(\]]/, '');
+        console.log(text);
+        let infos = style_functions.map((element, i) => {
+          let res = element(text);
+          return res ? {
+            title: element.name.slice(0, element.name.length - 6).toUpperCase() + " 引用格式",
+            description: res.title,
+            res: res,
+            cite: "unknown"
+          } : null;
+        });
+        infos = infos.filter((element) => element !== null);
+        console.log(infos);
+        callbackSetList(infos);
+      },
+      select: (action, itemData, callbackSetList) => {
+        console.log(itemData);
+        if (itemData.cite == "unknown") {
+          callbackSetList(generate_info(itemData.res, itemData.title));
+        } else {
+          // do same as cite_parse_export
+          select_cite_information(itemData)
+        }
+      }
+    }
+  },
+  "gbt_cite": cite_parse_export,
+  "apa_cite": cite_parse_export,
+  "mla_cite": cite_parse_export,
 }

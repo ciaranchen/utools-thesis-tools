@@ -237,7 +237,6 @@ window.exports = {
     args: {
       enter: function (action, callbackSetList) {
         let text = action.payload;
-        console.log(text);
         text = text.replaceAll('．', '.').replaceAll('。', '.').replaceAll('，', ', ');
         text = text.replaceAll('［', '[').replaceAll('］', ']');
         text = text.replace(/^[\(\[]\d+[\(\]]/, '');
@@ -257,7 +256,7 @@ window.exports = {
       },
       select: (action, itemData, callbackSetList) => {
         console.log(itemData);
-        if (itemData.cite == "unknown") {
+        if (itemData.cite === "unknown") {
           callbackSetList(generate_info(itemData.res, itemData.title));
         } else {
           // do same as cite_parse_export

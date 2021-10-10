@@ -19,42 +19,69 @@ function harvard_style(sentence) {
 
 // GB/T 7714
 function gbt_style(sentence) {
-  const gbt_match = /(.*?)\.(.*?)\[([JMCD])\]\.(.*,\s?(\d{4}).*)$/i
+  const gbt_match = /(.*?)\.\s*(.*?)\[(.{1,2})\]\s*?[\.\/]\/?\s*((.*?),\s?(\d{4}).*)$/i
   const found = sentence.match(gbt_match);
   // console.log(found);
-  return found ? {
+  let res = found ? {
+    cite: "GBT 7714",
     author: found[1],
-    year: found[5],
+    year: found[6],
     title: found[2],
     info: found[4],
-    type: found[3]
+    type: found[3],
   } : null;
+  if (res && res.type === 'J') {
+    res.publisher = found[5];
+    if (res.publisher.match(/^arxiv/ig)) {
+      res.publisher = 'ArXiv';
+    }
+  }
+  return res;
 }
 
 // MLA
 function mla_style(sentence) {
-  const mla_match = /(.*?)\.\s?"(.*?)"\s?(.*?\((\d{4})\).*?)$/i
+  const mla_match = /^(.*?)\.\s*[“"](.*?)["”]\s*(.*?(([\,\.]\s*\d{4})|(\(\d{4}\))).*?)$/i
   const found = sentence.match(mla_match);
   // console.log(found);
-  return found ? {
+  if (!found) return null;
+  let years = found[4].replace(/,\s+/, '').replace(/[\(\)]/g, '');
+  let res = {
+    cite: "MLA",
     author: found[1],
-    year: found[4],
+    year: years,
     title: found[2],
     info: found[3],
-  } : null;
+  }
+  if (!found[3].includes('onference')) {
+    res.publisher = found[3].replace(/[\(\d\):-]/g, '')
+    if (res.publisher.match(/^arxiv/ig)) {
+      res.publisher = 'ArXiv';
+    }
+  }
+  return res;
 }
 
 // APA
 function apa_style(sentence) {
-  const apa_match = /(.*?)\.\s?\((\d{4})\)\.\s?(.*?)\.\s?(.*)$/i
+  const apa_match = /^(.*)\.\s*\((\d{4})(,\s*\w+)?\)\.\s*(.*?)\.\s*(.*)$/i
   const found = sentence.match(apa_match);
   // console.log(found);
-  return found ? {
+  if (!found) return null;
+  let res = {
+    cite: "APA",
     author: found[1],
     year: found[2],
-    title: found[3],
-    info: found[4],
-  } : null;
+    title: found[4],
+    info: found[5],
+  };
+  if (!res.info.includes('onference')) {
+    res.publisher = res.info.split(',')[0];
+    if (res.publisher.match(/^arxiv/ig)) {
+      res.publisher = 'ArXiv';
+    }
+  }
+  return res;
 }
 
 function cite_parse(input) {
@@ -69,20 +96,27 @@ function cite_parse(input) {
 }
 
 console.log("Testing regex pattern... from Zotero")
+// Modern Language Association 9th edition
+console.log(cite_parse("Yang, Bishan, et al. “Embedding Entities and Relations for Learning and Inference in Knowledge Bases.” ArXiv:1412.6575 [Cs], Aug. 2015. arXiv.org, http://arxiv.org/abs/1412.6575."))
 // American Psychological Association 7th edition
 console.log(cite_parse("Yang, B., Yih, W., He, X., Gao, J., & Deng, L. (2015). Embedding Entities and Relations for Learning and Inference in Knowledge Bases. ArXiv:1412.6575 [Cs]. http://arxiv.org/abs/1412.6575"))
-// Modern Language Association 9th edition
-// TODO: fix this.
-// console.log(cite_parse("Yang, Bishan, et al. “Embedding Entities and Relations for Learning and Inference in Knowledge Bases.” ArXiv:1412.6575 [Cs], Aug. 2015. arXiv.org, http://arxiv.org/abs/1412.6575."))
 
 
+// arXiv论文、期刊论文、会议论文
 console.log("Testing regex pattern... from Google Scholar")
 // GB/T 7714
 console.log(cite_parse("Yang B, Yih W, He X, et al. Embedding entities and relations for learning and inference in knowledge bases[J]. arXiv preprint arXiv:1412.6575, 2014."))
+console.log(cite_parse("Gourisetti S N G, Mylrea M, Patangia H. Cybersecurity vulnerability mitigation framework through empirical paradigm: Enhanced prioritized gap analysis[J]. Future Generation Computer Systems, 2020, 105: 410-431."))
+console.log(cite_parse("Tao Y, Li M, Hu W. Research on Knowledge Graph Model for Cybersecurity Logs Based on Ontology and Classified Protection[C]//Journal of Physics: Conference Series. IOP Publishing, 2020, 1575(1): 012018."))
 // MLA
 console.log(cite_parse("Yang, Bishan, et al. \"Embedding entities and relations for learning and inference in knowledge bases.\" arXiv preprint arXiv:1412.6575 (2014)."))
+console.log(cite_parse("Gourisetti, Sri Nikhil Gupta, Michael Mylrea, and Hirak Patangia. \"Cybersecurity vulnerability mitigation framework through empirical paradigm: Enhanced prioritized gap analysis.\" Future Generation Computer Systems 105 (2020): 410-431."))
+console.log(cite_parse("Tao, Yuan, Moyan Li, and Wei Hu. \"Research on Knowledge Graph Model for Cybersecurity Logs Based on Ontology and Classified Protection.\" Journal of Physics: Conference Series. Vol. 1575. No. 1. IOP Publishing, 2020."))
 // APA
 console.log(cite_parse("Yang, B., Yih, W. T., He, X., Gao, J., & Deng, L. (2014). Embedding entities and relations for learning and inference in knowledge bases. arXiv preprint arXiv:1412.6575."))
+console.log(cite_parse("Gourisetti, S. N. G., Mylrea, M., & Patangia, H. (2020). Cybersecurity vulnerability mitigation framework through empirical paradigm: Enhanced prioritized gap analysis. Future Generation Computer Systems, 105, 410-431."))
+console.log(cite_parse("Tao, Y., Li, M., & Hu, W. (2020, June). Research on Knowledge Graph Model for Cybersecurity Logs Based on Ontology and Classified Protection. In Journal of Physics: Conference Series (Vol. 1575, No. 1, p. 012018). IOP Publishing."))
+
 
 // user input as test case.
 if (process.argv.length > 2) {

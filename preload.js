@@ -88,7 +88,7 @@ String.prototype.trim = function () {
 
 // Harvard style
 function harvard_style(sentence) {
-  const harvard_match = /(.*),\s?(\d{4})\.(.*?)\.(.*)/i
+  const harvard_match = /^(.*),\s*(\d{4})\.(.*?)\.(.*)$/i
   const found = sentence.match(harvard_match);
   // console.log(found);
   return found ? {
@@ -101,42 +101,69 @@ function harvard_style(sentence) {
 
 // GB/T 7714
 function gbt_style(sentence) {
-  const gbt_match = /(.*?)\.(.*?)\[([JMCD])\]\.(.*,\s?(\d{4}).*)$/i;
+  const gbt_match = /^(.*?)\.\s*(.*?)\[(.{1,2})\]\s*?[\.\/]\/?\s*((.*?),\s*(\d{4}).*)$/i
   const found = sentence.match(gbt_match);
   // console.log(found);
-  return found ? {
+  let res = found ? {
+    cite: "GBT 7714",
     author: found[1],
-    year: found[5],
+    year: found[6],
     title: found[2],
     info: found[4],
-    type: found[3]
+    type: found[3],
   } : null;
+  if (res && res.type === 'J') {
+    res.publisher = found[5];
+    if (res.publisher.match(/^arxiv/ig)) {
+      res.publisher = 'ArXiv';
+    }
+  }
+  return res;
 }
 
 // MLA
 function mla_style(sentence) {
-  const mla_match = /(.*?)\.\s?"(.*?)"\s?(.*?\((\d{4})\).*?)$/i
+  const mla_match = /^(.*?)\.\s*[“"](.*?)["”]\s*(.*?(([\,\.]\s*\d{4})|(\(\d{4}\))).*?)$/i
   const found = sentence.match(mla_match);
   // console.log(found);
-  return found ? {
+  if (!found) return null;
+  let years = found[4].replace(/,\s+/, '').replace(/[\(\)]/g, '');
+  let res = {
+    cite: "MLA",
     author: found[1],
-    year: found[4],
+    year: years,
     title: found[2],
     info: found[3],
-  } : null;
+  }
+  if (!found[3].includes('onference')) {
+    res.publisher = found[3].replace(/[\(\d\):-]/g, '')
+    if (res.publisher.match(/^arxiv/ig)) {
+      res.publisher = 'ArXiv';
+    }
+  }
+  return res;
 }
 
 // APA
 function apa_style(sentence) {
-  const apa_match = /(.*?)\.\s?\((\d{4})\)\.(.*?)\.(.*)$/i
+  const apa_match = /^(.*)\.\s*\((\d{4})(,\s*\w+)?\)\.\s*(.*?)\.\s*(.*)$/i
   const found = sentence.match(apa_match);
   // console.log(found);
-  return found ? {
+  if (!found) return null;
+  let res = {
+    cite: "APA",
     author: found[1],
     year: found[2],
-    title: found[3],
-    info: found[4],
-  } : null;
+    title: found[4],
+    info: found[5],
+  };
+  if (!res.info.includes('onference')) {
+    res.publisher = res.info.split(',')[0];
+    if (res.publisher.match(/^arxiv/ig)) {
+      res.publisher = 'ArXiv';
+    }
+  }
+  return res;
 }
 
 function generate_info(res, cite_style) {

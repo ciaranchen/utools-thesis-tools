@@ -6,7 +6,7 @@ String.prototype.trim = function () {
 
 // Harvard style
 function harvard_style(sentence) {
-  const harvard_match = /(.*),\s?(\d{4})\.(.*?)\.(.*)/i
+  const harvard_match = /^(.*),\s*(\d{4})\.(.*?)\.(.*)$/i
   const found = sentence.match(harvard_match);
   // console.log(found);
   return found ? {
@@ -19,7 +19,7 @@ function harvard_style(sentence) {
 
 // GB/T 7714
 function gbt_style(sentence) {
-  const gbt_match = /(.*?)\.\s*(.*?)\[(.{1,2})\]\s*?[\.\/]\/?\s*((.*?),\s?(\d{4}).*)$/i
+  const gbt_match = /^(.*?)\.\s*(.*?)\[(.{1,2})\]\s*?[\.\/]\/?\s*((.*?),\s*(\d{4}).*)$/i
   const found = sentence.match(gbt_match);
   // console.log(found);
   let res = found ? {

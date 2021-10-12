@@ -167,8 +167,14 @@ function apa_style(sentence) {
 }
 
 function generate_info(res, cite_style) {
-  return [{
-    title: '标题',
+  console.log(res);
+  let info = [{
+    title: res.title,
+    description: "跳转谷歌学术搜索...",
+    url: "https://scholar.google.com/scholar?q=" + encodeURI(res.title.trim()).replace(/%20/g, '+'),
+    cite: cite_style
+  }, {
+    title: '选择此项复制标题',
     description: res.title,
     cite: cite_style
   }, {
@@ -183,12 +189,39 @@ function generate_info(res, cite_style) {
     title: '其他信息',
     description: res.info,
     cite: cite_style
-  }]
+  }];
+  console.log(info[0].url)
+  if (res.type) {
+    let cite_content_type = res.type==="J"?"期刊":res.type==="C"?"会议":"其它";
+    info.push({
+      title: '类型',
+      description: cite_content_type,
+      cite: cite_style
+    })
+  }
+  if (res.publisher) {
+    let publisher = {
+      title: "出版商: " + res.publisher,
+      cite: cite_style
+    }
+    if (res.publisher !== 'ArXiv') {
+      publisher.description = "跳转Letpub搜索...";
+      publisher.url = "https://www.letpub.com.cn/index.php?page=journalapp&view=search&searchname=" + encodeURI(res.publisher.trim()).replace(/%20/g, '+');
+    } else {
+      publisher.description = res.publisher;
+    }
+    info.push(publisher)
+  }
+  return info;
 }
 
 function select_cite_information(itemData) {
   window.utools.hideMainWindow();
-  window.utools.copyText(itemData.description);
+  if (itemData.url) { // if itemData 中存在url,那么跳转到URL。
+    window.utools.shellOpenExternal(itemData.url);
+  } else {
+    window.utools.copyText(itemData.description);
+  }
   window.utools.outPlugin();
 }
 

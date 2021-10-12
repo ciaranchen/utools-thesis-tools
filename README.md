@@ -24,9 +24,9 @@
 
 ## 解析引用格式
 
-基于正则表达式拆解论文的引用格式。可能不准确，但是在大多数情况下都能用。
+基于正则表达式拆解论文的引用格式。可能不准确，但是在大多数情况下（从谷歌学术中拷贝的引用）都能用。
 
-解析出来，可能可以考虑做一些后续的处理，但是目前还暂时没有精力这么做，等待慢慢更新吧。
+测试用例可以参见[本项目下的regexp.js文件](https://ciaranchen.coding.net/public/dotfiles/utools_thesis_tools/git/files/master/regexp_test.js)
 
 使用方法：
 

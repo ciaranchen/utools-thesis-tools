@@ -30,12 +30,12 @@
 					"type": "over",
 					"label": "未知引用",
 					"minLength": 10
-			}
+				}
 			]
 		},
 		{
 			"code": "gbt_cite",
-			"explain": "正则匹配有可能不准确。",
+			"explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
 			"cmds": [
 				{
 					"type": "regex",
@@ -45,23 +45,23 @@
 			]
 		},
 		{
-			"code": "apa_cite",
-			"explain": "正则匹配有可能不准确。",
+			"code": "mla_cite",
+			"explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
 			"cmds": [
 				{
 					"type": "regex",
-					"label": "解析APA引用",
+					"label": "解析MLA引用",
 					"match": "/^(.*?)\\.\\s*[“\"](.*?)[\"”]\\s*(.*?(([\\,\\.]\\s*\\d{4})|(\\(\\d{4}\\))).*?)$/i"
 				}
 			]
 		},
 		{
-			"code": "mla_cite",
-			"explain": "正则匹配有可能不准确。",
+			"code": "apa_cite",
+			"explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
 			"cmds": [
 				{
 					"type": "regex",
-					"label": "解析MLA引用",
+					"label": "解析APA引用",
 					"match": "/^(.*)\\.\\s*\\((\\d{4})(,\\s*\\w+)?\\)\\.\\s*(.*?)\\.\\s*(.*)$/i"
 				}
 			]

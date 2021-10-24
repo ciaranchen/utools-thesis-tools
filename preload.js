@@ -41,23 +41,10 @@ function do_search(searchWord, callbackSetList) {
   if (!searchWord) return callbackSetList();
   searchWord = searchWord.toLowerCase();
   axios({
-    url: 'https://www.letpub.com.cn/index.php?page=journalapp&view=search',
-    method: 'post',
-    data: {
-      searchname: searchWord,
-      view: "search",
-      searchsort: "relevance"
-    },
+    url: "https://www.letpub.com.cn/index.php?page=journalapp&view=search&searchname=" + encodeURI(searchWord.trim()).replace(/%20/g, '+'),
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
-    transformRequest: [function (data) {
-      let ret = ''
-      for (let it in data) {
-        ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
-      }
-      return ret
-    }],
   }).then(response => {
     const data = response.data;
     callbackSetList(parse_letpub_results(data));
@@ -66,6 +53,7 @@ function do_search(searchWord, callbackSetList) {
 
 // code for ccf
 let csv_path = path.join(__dirname, 'CCF-2019.CSV')
+
 function class_map(class_number) {
   return {
     1: "计算机体系结构/并行与分布计算/存储系统",
@@ -121,7 +109,8 @@ function harvard_style(sentence) {
 
 // GB/T 7714
 function gbt_style(sentence) {
-  const gbt_match = /^(.*?)\.\s*(.*?)\[(.{1,2})\]\s*?[\.\/]\/?\s*((.*?)[,.]\s*.*\s*(\d{4}).*)$/i
+  // 原本GBT中的[]中可能有两位字母作为标识的，但是可能会与Arxiv的[Cs]冲突。
+  const gbt_match = /^(.*?)\.\s*(.*?)\[(.)\]\s*?[\.\/]\/?\s*((.*?)[,.]\s*.*\s*(\d{4}).*)$/i
   const found = sentence.match(gbt_match);
   // console.log(found);
   let res = found ? {
@@ -138,16 +127,26 @@ function gbt_style(sentence) {
       res.publisher = 'ArXiv';
     }
   }
+  if (res && res.type === 'C') {
+    let conf_text = found[5];
+    // 去除括号中的内容
+    conf_text = conf_text.replace(/\(.*\)/g, '').replace(/\{.*\}/g, '').replace(/\[.*\]/g, '');
+    // 去除一些经常出现，但是可能导致错误的名词
+    conf_text = conf_text.replace(/\d{4}/g, '').replace('IEEE', '').replace('ACM', '').replace('Workshops', '');
+    // console.log(conf_text);
+    res.conference = conf_text.trim();
+  }
   return res;
 }
 
 // MLA
 function mla_style(sentence) {
-  const mla_match = /^(.*?)[,\.]\s*[“"](.*?)["”]\s*(.*?(([\,\.]\s*\d{4})|(\(\d{4}\))).*?)$/i
+  sentence = sentence.replace(/Vol\.\s*\d{4}\./g, '')
+  const mla_match = /^(.*?)\.\s*[“"](.*?)["”]\s*((.*?)(([,\.]\s+\d{4})|(\(\d{4}\))).*?)$/i
   const found = sentence.match(mla_match);
   // console.log(found);
   if (!found) return null;
-  let years = found[4].replace(/,\s+/, '').replace(/[\(\)]/g, '');
+  let years = found[5].replace(/[^\d]/g, '');
   let res = {
     cite: "MLA",
     author: found[1],
@@ -155,17 +154,33 @@ function mla_style(sentence) {
     title: found[2],
     info: found[3],
   }
-  if (!found[3].includes('onference')) {
-    res.publisher = found[3].replace(/[\(\d\):-]/g, '')
-    if (res.publisher.match(/^arxiv/ig)) {
-      res.publisher = 'ArXiv';
-    }
+  if (found[4].match(/^arxiv/ig)) {
+    res.publisher = 'ArXiv';
+    return res;
   }
+  // Journal or Conference
+  let text = found[4];
+  // 去除括号中的内容
+  text = text.replace(/\(.*\)/g, '').replace(/\{.*\}/g, '').replace(/\[.*\]/g, '');
+  // 取前半截
+  text = text.split(/[,\.]/g)[0];
+  // 过滤标点符号
+  text = text.replace(/[\~\`\!\@\#\$\%\^\&\*\(\)\-\_\+\=\\\\[\]\{\}\;\"\'\,\<\.\>\/\?]/g, "");
+  // 过滤数字
+  text = text.replace(/(In\s)?\d{4}/ig, '').replace(/\d/g, '');
+  // 去除一些经常出现，但是可能导致错误的名词
+  text = text.replace(/\d{4}/g, '').replace('IEEE', '').replace('ACM', '').replace('Workshops', '');
+  if (text.includes('onference')) {
+    res.conference = text.trim();
+    return res;
+  }
+  res.unknown = text.trim();
   return res;
 }
 
 // APA
 function apa_style(sentence) {
+  sentence = sentence.replace(/Vol\.\s*\d{4}\./g, '')
   const apa_match = /^(.*)\.\s*\((\d{4})(,\s*\w+)?\)\.\s*(.*?)\.\s*(.*)$/i
   const found = sentence.match(apa_match);
   // console.log(found);
@@ -177,16 +192,31 @@ function apa_style(sentence) {
     title: found[4],
     info: found[5],
   };
-  if (!res.info.includes('onference')) {
-    res.publisher = res.info.split(',')[0];
-    if (res.publisher.match(/^arxiv/ig)) {
-      res.publisher = 'ArXiv';
-    }
+  if (found[5].match(/^arxiv/ig)) {
+    res.publisher = 'ArXiv';
+    return res;
   }
+  // Journal or Conference
+  let text = found[5];
+  // 去除括号中的内容
+  text = text.replace(/\(.*\)/g, '').replace(/\{.*\}/g, '').replace(/\[.*\]/g, '');
+  // 取前半截
+  text = text.split(/[,\.]/g)[0];
+  // 过滤标点符号
+  text = text.replace(/[\~\`\!\@\#\$\%\^\&\*\(\)\-\_\+\=\\\\[\]\{\}\;\"\'\,\<\.\>\/\?]/g, "");
+  // 过滤数字
+  text = text.replace(/(In\s)?\d{4}/ig, '').replace(/\d/g, '');
+  // 去除一些经常出现，但是可能导致错误的名词
+  text = text.replace(/\d{4}/g, '').replace('IEEE', '').replace('ACM', '').replace('Workshops', '');
+  if (text.includes('onference')) {
+    res.conference = text.trim();
+    return res;
+  }
+  res.unknown = text.trim();
   return res;
 }
 
-function generate_info(res, cite_style) {
+function generate_info(res, cite_style, cb) {
   console.log(res);
   let info = [{
     title: res.title,
@@ -210,29 +240,106 @@ function generate_info(res, cite_style) {
     description: res.info,
     cite: cite_style
   }];
-  console.log(info[0].url)
   if (res.type) {
     let cite_content_type = res.type === "J" ? "期刊" : res.type === "C" ? "会议" : "其它";
     info.push({
       title: '类型',
       description: cite_content_type,
       cite: cite_style
-    })
+    });
   }
   if (res.publisher) {
-    let publisher = {
-      title: "出版商: " + res.publisher,
-      cite: cite_style
-    }
-    if (res.publisher !== 'ArXiv') {
-      publisher.description = "跳转Letpub搜索...";
-      publisher.url = "https://www.letpub.com.cn/index.php?page=journalapp&view=search&searchname=" + encodeURI(res.publisher.trim()).replace(/%20/g, '+');
+    if (res.publisher === 'ArXiv') {
+      info.push({
+        title: "出版商: " + res.publisher,
+        description: res.publisher,
+        cite: cite_style
+      });
     } else {
-      publisher.description = res.publisher;
+      info.push({
+        title: "期刊: " + res.publisher,
+        description: "跳转Letpub编辑和搜索...",
+        cite: cite_style,
+        url: "https://www.letpub.com.cn/index.php?page=journalapp&view=search&searchname=" + encodeURI(res.publisher.trim()).replace(/%20/g, '+')
+      })
+      let text = res.publisher;
+      let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
+      let ccf_content = []
+      fs.createReadStream(csv_path)
+        .pipe(csv())
+        .on('data', (row) => {
+          ccf_content.push(row);
+        })
+        .on('end', () => {
+          // console.log(regexp);
+          let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
+          let res = data.map(row => ({
+              title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+              description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+              url: row['地址']
+          }));
+          if (res.length > 0) {
+            res = res[0];
+            res.title += " (CCF GUESS)";
+            info.push(res);
+          }
+          console.log(info);
+          axios({
+            url: "https://www.letpub.com.cn/index.php?page=journalapp&view=search&searchname=" + encodeURI(text.trim()).replace(/%20/g, '+'),
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+          }).then(response => {
+            const data = response.data;
+            // console.log(data);
+            let res = parse_letpub_results(data);
+            console.log(res);
+            if (res.length > 1) {
+              res = res[0];
+              res.title += " (LETPUB GUESS)";
+              info.push(res);
+            }
+            console.log(info);
+            cb(info);
+          });
+        });
     }
-    info.push(publisher)
+  } else if (res.conference) {
+    info.push({
+      title: "会议: " + res.conference,
+      cite: cite_style
+    })
+    // check CCF
+    let text = res.conference;
+    let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
+    let ccf_content = [];
+    fs.createReadStream(csv_path)
+        .pipe(csv())
+        .on('data', (row) => {
+          ccf_content.push(row);
+        })
+        .on('end', () => {
+          // console.log(regexp);
+          let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
+          let res = data.map(row => ({
+              title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+              description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+              url: row['地址']
+          }));
+          if (res.length > 0) {
+            res = res[0];
+            res.title += " (CCF GUESS)";
+            info.push(res);
+          }
+          cb(info);
+        });
+  } else {
+    info.push({
+      title: '未知类型: ' + res.unknown,
+      description: "抱歉无法识别此文献为期刊或会议。如果您认为这是一个BUG，请在插件评论区反馈。"
+    })
+    return cb(info);
   }
-  return info;
 }
 
 function select_cite_information(itemData) {
@@ -263,7 +370,7 @@ let cite_parse_export = {
       // console.log(code);
       let res = cite_map[code](text);
       // console.log(res);
-      callbackSetList(generate_info(res, code));
+      generate_info(res, code, callbackSetList);
     },
     select: function (action, itemData) {
       select_cite_information(itemData);
@@ -383,12 +490,23 @@ window.exports = {
         });
         infos = infos.filter((element) => element !== null);
         console.log(infos);
+        if (infos.length === 0) {
+          infos = [{
+            title: "未检出引用, 可能的原因如下："
+          }, {
+            title: "未支持的引用类型",
+            description: "可能您查询的引用类型不是MLA、APA、GB/T 7714类型的。后期将尝试添加更多支持的引用类型。"
+          }, {
+            title: "出现了BUG（更可能的情况）",
+            description: "出现问题也是难免的啦，首先为带来的不便向您卖个萌。如果您希望帮助我修复此问题，可以在插件评论区提出反馈。"
+          }]
+        }
         callbackSetList(infos);
       },
       select: (action, itemData, callbackSetList) => {
         console.log(itemData);
         if (itemData.cite === "unknown") {
-          callbackSetList(generate_info(itemData.res, itemData.title));
+          generate_info(itemData.title, itemData.description, callbackSetList);
         } else {
           // do same as cite_parse_export
           select_cite_information(itemData)

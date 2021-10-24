@@ -8,6 +8,14 @@
 
 使用方法：在uTools中使用关键字"letpub"。
 
+## CCF查询
+
+查询期刊/会议在CCF 2019年发布的目录中的分区情况。
+
+使用方法：在uTools中使用关键字"ccf"。
+
+使用的文件参考： <https://github.com/magichan/CCF-Recommended-Catalog-2019>
+
 ## pdf换行替换
 
 从pdf中复制时，常常句子被换行分开了。

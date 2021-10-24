@@ -1,5 +1,8 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+const csv = require('csv-parser');
+const path = require('path');
+const fs = require('fs');
 
 
 // code for letpub
@@ -61,6 +64,23 @@ function do_search(searchWord, callbackSetList) {
   });
 }
 
+// code for ccf
+let csv_path = path.join(__dirname, 'CCF-2019.CSV')
+function class_map(class_number) {
+  return {
+    1: "计算机体系结构/并行与分布计算/存储系统",
+    6: "计算机科学理论",
+    2: "计算机网络",
+    7: "计算机图形学与多媒体",
+    3: "网络与信息安全",
+    8: "人工智能",
+    4: "软件工程/系统软件/程序设计语言",
+    9: "人机交互与普适计算",
+    5: "数据库/数据挖掘/内容检索",
+    10: "交叉/综合/新兴"
+  } [class_number]
+}
+
 // code for pdf_replace
 function dbc2sbc(str) {
   let result = '';
@@ -101,7 +121,7 @@ function harvard_style(sentence) {
 
 // GB/T 7714
 function gbt_style(sentence) {
-  const gbt_match = /^(.*?)\.\s*(.*?)\[(.{1,2})\]\s*?[\.\/]\/?\s*((.*?),\s*(\d{4}).*)$/i
+  const gbt_match = /^(.*?)\.\s*(.*?)\[(.{1,2})\]\s*?[\.\/]\/?\s*((.*?)[,.]\s*.*\s*(\d{4}).*)$/i
   const found = sentence.match(gbt_match);
   // console.log(found);
   let res = found ? {
@@ -123,7 +143,7 @@ function gbt_style(sentence) {
 
 // MLA
 function mla_style(sentence) {
-  const mla_match = /^(.*?)\.\s*[“"](.*?)["”]\s*(.*?(([\,\.]\s*\d{4})|(\(\d{4}\))).*?)$/i
+  const mla_match = /^(.*?)[,\.]\s*[“"](.*?)["”]\s*(.*?(([\,\.]\s*\d{4})|(\(\d{4}\))).*?)$/i
   const found = sentence.match(mla_match);
   // console.log(found);
   if (!found) return null;
@@ -192,7 +212,7 @@ function generate_info(res, cite_style) {
   }];
   console.log(info[0].url)
   if (res.type) {
-    let cite_content_type = res.type==="J"?"期刊":res.type==="C"?"会议":"其它";
+    let cite_content_type = res.type === "J" ? "期刊" : res.type === "C" ? "会议" : "其它";
     info.push({
       title: '类型',
       description: cite_content_type,
@@ -239,10 +259,10 @@ let cite_parse_export = {
     enter: function (action, callbackSetList) {
       let code = action.code;
       let text = action.payload;
-      console.log(text);
-      console.log(code);
+      // console.log(text);
+      // console.log(code);
       let res = cite_map[code](text);
-      console.log(res);
+      // console.log(res);
       callbackSetList(generate_info(res, code));
     },
     select: function (action, itemData) {
@@ -265,6 +285,57 @@ window.exports = {
         if (itemData.title != "更多内容") {
           window.utools.copyText(itemData.title);
         }
+        window.utools.shellOpenExternal(itemData.url);
+        window.utools.outPlugin();
+      }
+    }
+  },
+  "ccf": {
+    mode: 'list',
+    args: {
+      enter: function (action, callbackSetList) {
+        let ccf_content = []
+        fs.createReadStream(csv_path)
+          .pipe(csv())
+          .on('data', (row) => {
+            ccf_content.push(row);
+          })
+          .on('end', () => {
+            let res = ccf_content.map(row => {
+              return {
+                title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+                description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+                url: row['地址']
+              }
+            });
+            callbackSetList(res);
+          });
+      },
+      search: (action, searchWord, callbackSetList) => {
+        let text = searchWord;
+        // 是否需要真的构建一个正则表达式呢？
+        let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
+        let ccf_content = []
+        fs.createReadStream(csv_path)
+          .pipe(csv())
+          .on('data', (row) => {
+            ccf_content.push(row);
+          })
+          .on('end', () => {
+            // console.log(regexp);
+            let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
+            let res = data.map(row => {
+              return {
+                title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+                description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+                url: row['地址']
+              }
+            });
+            callbackSetList(res);
+          });
+      },
+      select: (action, itemData) => {
+        window.utools.hideMainWindow()
         window.utools.shellOpenExternal(itemData.url);
         window.utools.outPlugin();
       }

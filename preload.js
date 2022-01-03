@@ -9,8 +9,11 @@ const fs = require('fs');
 let letpub_timeout;
 let base_url = "https://www.letpub.com.cn/"
 
-
+const notfound_text = "暂无匹配结果，请确认您输入的期刊名和其他搜索条件是否正确。如果正确，则该期刊不是SCI期刊。";
 function parse_letpub_results(text) {
+  if (text.indexOf(notfound_text) !== -1) {
+    return null;
+  }
   let $ = cheerio.load(text);
   trs = $("#yxyz_content > table.table_yjfx > tbody > tr:gt(1)");
   let res = trs.map((i, e) => {
@@ -47,7 +50,14 @@ function do_search(searchWord, callbackSetList) {
     },
   }).then(response => {
     const data = response.data;
-    callbackSetList(parse_letpub_results(data));
+    let return_info = parse_letpub_results(data);
+    if (return_info) {
+      callbackSetList(return_info);
+    } else {
+      callbackSetList([{
+        title: notfound_text
+      }]);
+    }
   });
 }
 
@@ -255,6 +265,7 @@ function generate_info(res, cite_style, cb) {
         description: res.publisher,
         cite: cite_style
       });
+      cb(info);
     } else {
       info.push({
         title: "期刊: " + res.publisher,
@@ -294,9 +305,9 @@ function generate_info(res, cite_style, cb) {
             // console.log(data);
             let res = parse_letpub_results(data);
             console.log(res);
-            if (res.length > 1) {
+            if (res && res.length > 1) {
               res = res[0];
-              res.title += " (LETPUB GUESS)";
+              res.title += " (Letpub GUESS)";
               info.push(res);
             }
             console.log(info);

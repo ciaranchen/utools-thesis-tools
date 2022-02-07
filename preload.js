@@ -3,6 +3,8 @@ const cheerio = require('cheerio');
 const csv = require('csv-parser');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
+const sqlite3 = require('sqlite3');
 
 
 // code for letpub
@@ -10,6 +12,7 @@ let letpub_timeout;
 let base_url = "https://www.letpub.com.cn/"
 
 const notfound_text = "暂无匹配结果，请确认您输入的期刊名和其他搜索条件是否正确。如果正确，则该期刊不是SCI期刊。";
+
 function parse_letpub_results(text) {
   if (text.indexOf(notfound_text) !== -1) {
     return null;
@@ -285,9 +288,9 @@ function generate_info(res, cite_style, cb) {
           // console.log(regexp);
           let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
           let res = data.map(row => ({
-              title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-              description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-              url: row['地址']
+            title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+            description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+            url: row['地址']
           }));
           if (res.length > 0) {
             res = res[0];
@@ -325,25 +328,25 @@ function generate_info(res, cite_style, cb) {
     let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
     let ccf_content = [];
     fs.createReadStream(csv_path)
-        .pipe(csv())
-        .on('data', (row) => {
-          ccf_content.push(row);
-        })
-        .on('end', () => {
-          // console.log(regexp);
-          let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
-          let res = data.map(row => ({
-              title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-              description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-              url: row['地址']
-          }));
-          if (res.length > 0) {
-            res = res[0];
-            res.title += " (CCF GUESS)";
-            info.push(res);
-          }
-          cb(info);
-        });
+      .pipe(csv())
+      .on('data', (row) => {
+        ccf_content.push(row);
+      })
+      .on('end', () => {
+        // console.log(regexp);
+        let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
+        let res = data.map(row => ({
+          title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+          description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+          url: row['地址']
+        }));
+        if (res.length > 0) {
+          res = res[0];
+          res.title += " (CCF GUESS)";
+          info.push(res);
+        }
+        cb(info);
+      });
   } else {
     info.push({
       title: '未知类型: ' + res.unknown,
@@ -478,6 +481,44 @@ window.exports = {
         }
         window.utools.copyText(res);
         window.utools.outPlugin()
+      }
+    }
+  },
+  "zotero_search": {
+    mode: 'list',
+    args: {
+      enter: (action, callbackSetList) => {
+        // use default zotero path "%HOMEPATH%\\Zotero\\zotero.sqlite"
+        let db_path = path.join(os.homedir(), 'Zotero', 'zotero.sqlite');
+        // console.log(db_path);
+        db = new sqlite3.Database(db_path, function (err) {
+          if (err) throw err;
+        });
+      },
+      search: (action, searchWord, callbackSetList) => {
+        // search title in zotero
+        db.all("SELECT itemDataValues.value, items.key as itemKey, items.libraryID FROM items" +
+          " INNER JOIN itemData ON items.itemID = itemData.itemID" +
+          " INNER JOIN itemDataValues ON itemData.valueID=itemDataValues.valueID" +
+          " WHERE itemData.fieldID=1 AND itemDataValues.value like '%" + searchWord + "%'",
+          function (err, rows) {
+            if (err) throw err;
+            let res = rows.map(row => {
+              // construct url
+              let url = "zotero://select/items/" + row.libraryID + "_" + row.itemKey;
+              return {
+                title: row.value,
+                description: url,
+                url: url
+              }
+            });
+            callbackSetList(res);
+          });
+      },
+      select: (action, itemData) => {
+        window.utools.hideMainWindow()
+        window.utools.shellOpenExternal(itemData.url);
+        window.utools.outPlugin();
       }
     }
   },

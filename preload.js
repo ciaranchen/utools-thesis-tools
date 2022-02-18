@@ -531,18 +531,39 @@ window.exports = {
     args: {
       enter: (action, callbackSetList) => {
         // use default zotero path "%HOMEPATH%\\Zotero\\zotero.sqlite"
-        let db_path = path.join(os.homedir(), 'Zotero', 'zotero.sqlite');
-        // console.log(db_path);
-        db = new sqlite3.Database(db_path, function (err) {
+        let origin_db_path = path.join(os.homedir(), 'Zotero', 'zotero.sqlite');
+        let db_path = origin_db_path + "_backup";
+        fs.copyFile(origin_db_path, db_path, (err) => {
+          console.log(db_path);
           if (err) throw err;
+          db = new sqlite3.Database(db_path, sqlite3.OPEN_READONLY, function (err) {
+            if (err) throw err;
+            console.log('Connected to the SQLite database');
+          });
+          db.all("SELECT itemDataValues.value, items.key as itemKey, items.libraryID FROM items" +
+            " INNER JOIN itemData ON items.itemID = itemData.itemID AND itemData.fieldID=1" +
+            " INNER JOIN itemDataValues ON itemData.valueID=itemDataValues.valueID",
+            function (err, rows) {
+              if (err) throw err;
+              let res = rows.map(row => {
+                // construct url
+                let url = "zotero://select/items/" + row.libraryID + "_" + row.itemKey;
+                return {
+                  title: row.value,
+                  description: url,
+                  url: url
+                }
+              });
+              callbackSetList(res);
+            });
         });
       },
       search: (action, searchWord, callbackSetList) => {
         // search title in zotero
         db.all("SELECT itemDataValues.value, items.key as itemKey, items.libraryID FROM items" +
-          " INNER JOIN itemData ON items.itemID = itemData.itemID" +
+          " INNER JOIN itemData ON items.itemID = itemData.itemID AND itemData.fieldID=1" +
           " INNER JOIN itemDataValues ON itemData.valueID=itemDataValues.valueID" +
-          " WHERE itemData.fieldID=1 AND itemDataValues.value like '%" + searchWord + "%'",
+          " WHERE itemDataValues.value like '%" + searchWord + "%'",
           function (err, rows) {
             if (err) throw err;
             let res = rows.map(row => {

@@ -12,9 +12,11 @@
 
 查询期刊/会议在CCF 2019年发布的目录中的分区情况。
 
-使用方法：在uTools中使用关键字"ccf"。
+使用方法：
+    - 在uTools中使用关键字"ccf"查询期刊/会议在《中国计算机学会推荐国际学术会议和期刊目录（2019年）》的等级。
+    - 在uTools中使用关键字"ccfz"或者"ccfc"查询期刊在《中国计算机学会推荐中文科技期刊目录（2019年）》的等级。
 
-使用的文件参考： <https://github.com/magichan/CCF-Recommended-Catalog-2019>
+参考： <https://www.ccf.org.cn/c/2019-07-31/667605.shtml>
 
 ## pdf换行替换
 
@@ -46,8 +48,6 @@
 ## Zotero-Search
 
 连接Zotero数据库查询Zotero中的文献资料。（标题匹配）
-
-使用方法：
 
 使用方法：在uTools中使用关键字"zotero"或者"zs"。
 

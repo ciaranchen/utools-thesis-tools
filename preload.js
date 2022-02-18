@@ -65,7 +65,24 @@ function do_search(searchWord, callbackSetList) {
 }
 
 // code for ccf
-let csv_path = path.join(__dirname, 'CCF-2019.CSV')
+let ccf_path = path.join(__dirname, 'CCF-2019.CSV')
+let ccf_parse = (row) => {
+  return {
+    title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+    description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+    url: row['地址']
+  }
+}
+
+let ccf_cn_path = path.join(__dirname, 'CCF-2019CN.CSV')
+let ccf_cn_parse = (row) => {
+  return {
+    title: row['期刊名称'],
+    description: "CCF中文-" + row['等级'] + " " + "期刊" + "  (主办单位：" + row['主办单位'] + ")",
+    url: row['网址']
+  }
+}
+
 
 function class_map(class_number) {
   return {
@@ -415,20 +432,13 @@ window.exports = {
     mode: 'list',
     args: {
       enter: function (action, callbackSetList) {
-        let ccf_content = []
-        fs.createReadStream(csv_path)
+        let res = []
+        fs.createReadStream(ccf_path)
           .pipe(csv())
           .on('data', (row) => {
-            ccf_content.push(row);
+            res.push(ccf_parse(row));
           })
           .on('end', () => {
-            let res = ccf_content.map(row => {
-              return {
-                title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-                description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-                url: row['地址']
-              }
-            });
             callbackSetList(res);
           });
       },
@@ -437,21 +447,53 @@ window.exports = {
         // 是否需要真的构建一个正则表达式呢？
         let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
         let ccf_content = []
-        fs.createReadStream(csv_path)
+        fs.createReadStream(ccf_path)
           .pipe(csv())
           .on('data', (row) => {
             ccf_content.push(row);
           })
           .on('end', () => {
-            // console.log(regexp);
             let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
-            let res = data.map(row => {
-              return {
-                title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-                description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-                url: row['地址']
-              }
-            });
+            let res = data.map(ccf_parse);
+            callbackSetList(res);
+          });
+      },
+      select: (action, itemData) => {
+        window.utools.hideMainWindow()
+        window.utools.shellOpenExternal(itemData.url);
+        window.utools.outPlugin();
+      }
+    }
+  },
+  "ccf_cn": {
+    mode: "list",
+    args: {
+      enter: function (action, callbackSetList) {
+        let ccf_content = []
+        fs.createReadStream(ccf_cn_path)
+          .pipe(csv())
+          .on('data', (row) => {
+            ccf_content.push(row);
+          })
+          .on('end', () => {
+            let res = ccf_content.map(ccf_cn_parse);
+            callbackSetList(res);
+          });
+      },
+      search: (action, searchWord, callbackSetList) => {
+        let text = searchWord;
+        // 是否需要真的构建一个正则表达式呢？
+        let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
+        let ccf_content = []
+        fs.createReadStream(ccf_cn_path)
+          .pipe(csv())
+          .on('data', (row) => {
+            ccf_content.push(row);
+          })
+          .on('end', () => {
+            let data = ccf_content.filter(row => row['期刊名称'].match(regexp));
+            console.log(data);
+            let res = data.map(ccf_cn_parse);
             callbackSetList(res);
           });
       },

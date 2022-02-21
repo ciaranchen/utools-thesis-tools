@@ -448,6 +448,7 @@ window.exports = {
       }
     }
   },
+  // TODO: fix it in Linux.
   'pdf_replace': {
     mode: 'none',
     args: {

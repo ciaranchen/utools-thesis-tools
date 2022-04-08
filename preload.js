@@ -3,14 +3,20 @@ const cheerio = require('cheerio');
 const csv = require('csv-parser');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
+const sqlite3 = require('sqlite3');
 
 
 // code for letpub
 let letpub_timeout;
 let base_url = "https://www.letpub.com.cn/"
 
+const notfound_text = "暂无匹配结果，请确认您输入的期刊名和其他搜索条件是否正确。如果正确，则该期刊不是SCI期刊。";
 
 function parse_letpub_results(text) {
+  if (text.indexOf(notfound_text) !== -1) {
+    return null;
+  }
   let $ = cheerio.load(text);
   trs = $("#yxyz_content > table.table_yjfx > tbody > tr:gt(1)");
   let res = trs.map((i, e) => {
@@ -47,12 +53,36 @@ function do_search(searchWord, callbackSetList) {
     },
   }).then(response => {
     const data = response.data;
-    callbackSetList(parse_letpub_results(data));
+    let return_info = parse_letpub_results(data);
+    if (return_info) {
+      callbackSetList(return_info);
+    } else {
+      callbackSetList([{
+        title: notfound_text
+      }]);
+    }
   });
 }
 
 // code for ccf
-let csv_path = path.join(__dirname, 'CCF-2019.CSV')
+let ccf_path = path.join(__dirname, 'CCF-2019.CSV')
+let ccf_parse = (row) => {
+  return {
+    title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+    description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+    url: row['地址']
+  }
+}
+
+let ccf_cn_path = path.join(__dirname, 'CCF-2019CN.CSV')
+let ccf_cn_parse = (row) => {
+  return {
+    title: row['期刊名称'],
+    description: "CCF中文-" + row['等级'] + " " + "期刊" + "  (主办单位：" + row['主办单位'] + ")",
+    url: row['网址']
+  }
+}
+
 
 function class_map(class_number) {
   return {
@@ -255,6 +285,7 @@ function generate_info(res, cite_style, cb) {
         description: res.publisher,
         cite: cite_style
       });
+      cb(info);
     } else {
       info.push({
         title: "期刊: " + res.publisher,
@@ -274,9 +305,9 @@ function generate_info(res, cite_style, cb) {
           // console.log(regexp);
           let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
           let res = data.map(row => ({
-              title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-              description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-              url: row['地址']
+            title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+            description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+            url: row['地址']
           }));
           if (res.length > 0) {
             res = res[0];
@@ -294,9 +325,9 @@ function generate_info(res, cite_style, cb) {
             // console.log(data);
             let res = parse_letpub_results(data);
             console.log(res);
-            if (res.length > 1) {
+            if (res && res.length > 1) {
               res = res[0];
-              res.title += " (LETPUB GUESS)";
+              res.title += " (Letpub GUESS)";
               info.push(res);
             }
             console.log(info);
@@ -314,25 +345,25 @@ function generate_info(res, cite_style, cb) {
     let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
     let ccf_content = [];
     fs.createReadStream(csv_path)
-        .pipe(csv())
-        .on('data', (row) => {
-          ccf_content.push(row);
-        })
-        .on('end', () => {
-          // console.log(regexp);
-          let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
-          let res = data.map(row => ({
-              title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-              description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-              url: row['地址']
-          }));
-          if (res.length > 0) {
-            res = res[0];
-            res.title += " (CCF GUESS)";
-            info.push(res);
-          }
-          cb(info);
-        });
+      .pipe(csv())
+      .on('data', (row) => {
+        ccf_content.push(row);
+      })
+      .on('end', () => {
+        // console.log(regexp);
+        let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
+        let res = data.map(row => ({
+          title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
+          description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
+          url: row['地址']
+        }));
+        if (res.length > 0) {
+          res = res[0];
+          res.title += " (CCF GUESS)";
+          info.push(res);
+        }
+        cb(info);
+      });
   } else {
     info.push({
       title: '未知类型: ' + res.unknown,
@@ -401,20 +432,13 @@ window.exports = {
     mode: 'list',
     args: {
       enter: function (action, callbackSetList) {
-        let ccf_content = []
-        fs.createReadStream(csv_path)
+        let res = []
+        fs.createReadStream(ccf_path)
           .pipe(csv())
           .on('data', (row) => {
-            ccf_content.push(row);
+            res.push(ccf_parse(row));
           })
           .on('end', () => {
-            let res = ccf_content.map(row => {
-              return {
-                title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-                description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-                url: row['地址']
-              }
-            });
             callbackSetList(res);
           });
       },
@@ -423,21 +447,53 @@ window.exports = {
         // 是否需要真的构建一个正则表达式呢？
         let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
         let ccf_content = []
-        fs.createReadStream(csv_path)
+        fs.createReadStream(ccf_path)
           .pipe(csv())
           .on('data', (row) => {
             ccf_content.push(row);
           })
           .on('end', () => {
-            // console.log(regexp);
             let data = ccf_content.filter(row => row['刊物全称'].match(regexp) || row['刊物名称'].match(regexp))
-            let res = data.map(row => {
-              return {
-                title: row['刊物名称'] + "(" + row['刊物全称'] + ")",
-                description: class_map(row['类别']) + "  " + "CCF-" + row['等级'] + "  " + (row['期刊/会议'] === "Meeting" ? "会议" : "期刊"),
-                url: row['地址']
-              }
-            });
+            let res = data.map(ccf_parse);
+            callbackSetList(res);
+          });
+      },
+      select: (action, itemData) => {
+        window.utools.hideMainWindow()
+        window.utools.shellOpenExternal(itemData.url);
+        window.utools.outPlugin();
+      }
+    }
+  },
+  "ccf_cn": {
+    mode: "list",
+    args: {
+      enter: function (action, callbackSetList) {
+        let ccf_content = []
+        fs.createReadStream(ccf_cn_path)
+          .pipe(csv())
+          .on('data', (row) => {
+            ccf_content.push(row);
+          })
+          .on('end', () => {
+            let res = ccf_content.map(ccf_cn_parse);
+            callbackSetList(res);
+          });
+      },
+      search: (action, searchWord, callbackSetList) => {
+        let text = searchWord;
+        // 是否需要真的构建一个正则表达式呢？
+        let regexp = new RegExp(text.trim().replace(/\s+/ig, '\\s'), 'i');
+        let ccf_content = []
+        fs.createReadStream(ccf_cn_path)
+          .pipe(csv())
+          .on('data', (row) => {
+            ccf_content.push(row);
+          })
+          .on('end', () => {
+            let data = ccf_content.filter(row => row['期刊名称'].match(regexp));
+            console.log(data);
+            let res = data.map(ccf_cn_parse);
             callbackSetList(res);
           });
       },
@@ -468,6 +524,65 @@ window.exports = {
         }
         window.utools.copyText(res);
         window.utools.outPlugin()
+      }
+    }
+  },
+  "zotero_search": {
+    mode: 'list',
+    args: {
+      enter: (action, callbackSetList) => {
+        // use default zotero path "%HOMEPATH%\\Zotero\\zotero.sqlite"
+        let origin_db_path = path.join(os.homedir(), 'Zotero', 'zotero.sqlite');
+        let db_path = origin_db_path + "_backup";
+        fs.copyFile(origin_db_path, db_path, (err) => {
+          console.log(db_path);
+          if (err) throw err;
+          db = new sqlite3.Database(db_path, sqlite3.OPEN_READONLY, function (err) {
+            if (err) throw err;
+            console.log('Connected to the SQLite database');
+          });
+          db.all("SELECT itemDataValues.value, items.key as itemKey, items.libraryID FROM items" +
+            " INNER JOIN itemData ON items.itemID = itemData.itemID AND itemData.fieldID=1" +
+            " INNER JOIN itemDataValues ON itemData.valueID=itemDataValues.valueID",
+            function (err, rows) {
+              if (err) throw err;
+              let res = rows.map(row => {
+                // construct url
+                let url = "zotero://select/items/" + row.libraryID + "_" + row.itemKey;
+                return {
+                  title: row.value,
+                  description: url,
+                  url: url
+                }
+              });
+              callbackSetList(res);
+            });
+        });
+      },
+      search: (action, searchWord, callbackSetList) => {
+        // search title in zotero
+        db.all("SELECT itemDataValues.value, items.key as itemKey, items.libraryID FROM items" +
+          " INNER JOIN itemData ON items.itemID = itemData.itemID AND itemData.fieldID=1" +
+          " INNER JOIN itemDataValues ON itemData.valueID=itemDataValues.valueID" +
+          " WHERE itemDataValues.value like '%" + searchWord + "%'",
+          function (err, rows) {
+            if (err) throw err;
+            let res = rows.map(row => {
+              // construct url
+              let url = "zotero://select/items/" + row.libraryID + "_" + row.itemKey;
+              return {
+                title: row.value,
+                description: url,
+                url: url
+              }
+            });
+            callbackSetList(res);
+          });
+      },
+      select: (action, itemData) => {
+        window.utools.hideMainWindow()
+        window.utools.shellOpenExternal(itemData.url);
+        window.utools.outPlugin();
       }
     }
   },

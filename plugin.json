@@ -1,80 +1,90 @@
 {
-	"preload": "preload.js",
-	"logo": "logo.png",
-	"features": [
-		{
-			"code": "letpub",
-			"explain": "查看期刊分区号",
-			"cmds": [
-				"lp",
-				"letpub"
-			]
-		},
-		{
-			"code": "ccf",
-			"explain": "查看期刊/会议CCF 2019等级",
-			"cmds": [
-				"ccf"
-			]
-		},
-		{
-			"code": "pdf_replace",
-			"explain": "替换pdf的换行",
-			"cmds": [
-				{
-					"type": "regex",
-					"label": "替换pdf换行",
-					"match": "/.*\\r\\n.*/i",
-					"minLength": 20
-				}
-			],
-			"platform": [
-				"win32"
-			]
-		},
-		{
-			"code": "unknown_cite",
-			"explain": "解析引用",
-			"cmds": [
-				{
-					"type": "over",
-					"label": "未知引用",
-					"minLength": 10
-				}
-			]
-		},
-		{
-			"code": "gbt_cite",
-			"explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
-			"cmds": [
-				{
-					"type": "regex",
-					"label": "解析GB/T 7714引用",
-					"match": "/^(.*?)\\.\\s*(.*?)\\[(.{1,2})\\]\\s*?[\\.\\/]\\/?\\s*((.*?),\\s*(\\d{4}).*)$/i"
-				}
-			]
-		},
-		{
-			"code": "mla_cite",
-			"explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
-			"cmds": [
-				{
-					"type": "regex",
-					"label": "解析MLA引用",
-					"match": "/^(.*?)[\\.]\\s*[“\"](.*?)[\"”]\\s*(.*?(([,\\.]\\s+\\d{4})|(\\(\\d{4}\\))).*?)$/i"
-				}
-			]
-		},
-		{
-			"code": "apa_cite",
-			"explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
-			"cmds": [
-				{
-					"type": "regex",
-					"label": "解析APA引用",
-					"match": "/^(.*)\\.\\s*\\((\\d{4})(,\\s*\\w+)?\\)\\.\\s*(.*?)\\.\\s*(.*)$/i"
-				}
-			]
-		}
-	]
+  "preload": "preload.js",
+  "logo": "logo.png",
+  "features": [
+    {
+      "code": "letpub",
+      "explain": "查看期刊分区号",
+      "cmds": [
+        "lp",
+        "letpub"
+      ]
+    },
+    {
+      "code": "ccf",
+      "explain": "查询期刊/会议在《中国计算机学会推荐国际学术会议和期刊目录（2019年）》的等级",
+      "cmds": [
+        "ccf"
+      ]
+    },
+    {
+      "code": "ccf_cn",
+      "explain": "查询期刊在《中国计算机学会推荐中文科技期刊目录（2019年）》的等级",
+      "cmds": [
+        "ccfc",
+        "ccfz"
+      ]
+    },
+    {
+      "code": "pdf_replace",
+      "explain": "替换pdf的换行",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "替换pdf换行",
+          "match": "/.*\\r\\n.*/i",
+          "minLength": 20
+        }
+      ]
+    },
+    {
+      "code": "zotero_search",
+      "explain": "查询Zotero文献",
+      "cmds": ["zotero", "zs", "zotero_search"]
+    },
+    {
+      "code": "unknown_cite",
+      "explain": "解析引用",
+      "cmds": [
+        {
+          "type": "over",
+          "label": "未知引用",
+          "minLength": 10
+        }
+      ]
+    },
+    {
+      "code": "gbt_cite",
+      "explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "解析GB/T 7714引用",
+          "match": "/^(.*?)\\.\\s*(.*?)\\[(.{1,2})\\]\\s*?[\\.\\/]\\/?\\s*((.*?),\\s*(\\d{4}).*)$/i"
+        }
+      ]
+    },
+    {
+      "code": "mla_cite",
+      "explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "解析MLA引用",
+          "match": "/^(.*?)[\\.]\\s*[“\"](.*?)[\"”]\\s*(.*?(([,\\.]\\s+\\d{4})|(\\(\\d{4}\\))).*?)$/i"
+        }
+      ]
+    },
+    {
+      "code": "apa_cite",
+      "explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "解析APA引用",
+          "match": "/^(.*)\\.\\s*\\((\\d{4})(,\\s*\\w+)?\\)\\.\\s*(.*?)\\.\\s*(.*)$/i"
+        }
+      ]
+    }
+  ]
 }

@@ -141,7 +141,8 @@ console.log("Testing regex pattern... from Zotero")
 console.log(cite_parse("Yang, Bishan, et al. “Embedding Entities and Relations for Learning and Inference in Knowledge Bases.” ArXiv:1412.6575 [Cs], Aug. 2015. arXiv.org, http://arxiv.org/abs/1412.6575."))
 // American Psychological Association 7th edition
 console.log(cite_parse("Yang, B., Yih, W., He, X., Gao, J., & Deng, L. (2015). Embedding Entities and Relations for Learning and Inference in Knowledge Bases. ArXiv:1412.6575 [Cs]. http://arxiv.org/abs/1412.6575"))
-
+// China National Standard GB/T 7714-1987 (numeric, 中文)
+console.log(cite_parse("Yang B, Yih W, He X, 等. Embedding Entities and Relations for Learning and Inference in Knowledge Bases[J]. arXiv:1412.6575 [cs], 2015."));
 
 // arXiv论文、期刊论文、会议论文
 console.log("Testing regex pattern... from Google Scholar")

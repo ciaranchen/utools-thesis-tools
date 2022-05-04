@@ -3,8 +3,6 @@ const cheerio = require('cheerio');
 const csv = require('csv-parser');
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
-const sqlite3 = require('sqlite3');
 
 
 // code for letpub
@@ -531,8 +529,32 @@ window.exports = {
     mode: 'list',
     args: {
       enter: (action, callbackSetList) => {
-        // use default zotero path "%HOMEPATH%\\Zotero\\zotero.sqlite"
-        let origin_db_path = path.join(os.homedir(), 'Zotero', 'zotero.sqlite');
+        const sqlite3 = require('sqlite3');
+        // default zotero db location: "%HOMEPATH%\\Zotero\\zotero.sqlite"
+        // let origin_db_path = path.join(os.homedir(), 'Zotero', 'zotero.sqlite');
+        let profile_dir = path.join(utools.getPath('appData'), 'Zotero', 'Zotero', 'Profiles');
+        // 因为没有解析profile.ini，所以这里只能假设我们只有一个profile
+        let dirs = fs.readdirSync(profile_dir, {withFileTypes: true}).filter(file => file.isDirectory() && file.name.endsWith('default')).map(dirent => dirent.name);
+        // assert len(dirs) == 1
+        console.log(dirs[0]);
+        let pref_path = path.join(profile_dir, dirs[0], 'prefs.js');
+        let prefs = fs.readFileSync(pref_path, 'utf8');
+        let pref_regex = /user_pref\("extensions.zotero.dataDir",\s?"(.*)"\);/;
+        let match = pref_regex.exec(prefs);
+        console.log(match[1]);
+        let origin_db_path = path.join(match[1], 'zotero.sqlite');
+        console.log(origin_db_path);
+
+        if (!fs.existsSync(origin_db_path)) {
+          // 扔报错。
+          console.log('zotero.sqlite not found');
+          callbackSetList([{
+            title: 'zotero.sqlite not found',
+            description: '未在你的设置中找到zotero.sqlite的位置，这可能是个bug，请联系插件作者。'
+          }]);
+          return;
+        }
+        
         let db_path = origin_db_path + "_backup";
         fs.copyFile(origin_db_path, db_path, (err) => {
           console.log(db_path);

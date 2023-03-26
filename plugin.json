@@ -12,14 +12,14 @@
     },
     {
       "code": "ccf",
-      "explain": "查询期刊/会议在《中国计算机学会推荐国际学术会议和期刊目录（2019年）》的等级",
+      "explain": "查询期刊/会议在《中国计算机学会推荐国际学术会议和期刊目录（2022年）》的等级",
       "cmds": [
         "ccf"
       ]
     },
     {
       "code": "ccf_cn",
-      "explain": "查询期刊在《中国计算机学会推荐中文科技期刊目录（2019年）》的等级",
+      "explain": "查询期刊在《计算领域高质量科技期刊分级目录（2022年）》的等级",
       "cmds": [
         "ccfc",
         "ccfz"
@@ -35,12 +35,34 @@
           "match": "/.*\\r\\n.*/i",
           "minLength": 20
         }
+      ],
+      "platform": [
+        "win32"
+      ]
+    },
+    {
+      "code": "pdf_replace_linux",
+      "explain": "替换pdf的换行",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "替换pdf换行",
+          "match": "/.*\\n.*/i",
+          "minLength": 20
+        }
+      ],
+      "platform": [
+        "linux",
+        "darwin"
       ]
     },
     {
       "code": "zotero_search",
       "explain": "查询Zotero文献",
-      "cmds": ["zotero", "zs", "zotero_search"]
+      "cmds": [
+        "zotero",
+        "zs"
+      ]
     },
     {
       "code": "unknown_cite",

@@ -8,9 +8,9 @@ export const LetpubBaseUrl = "https://www.letpub.com.cn/";
 let letpubTimeout;
 
 /**
- * Get Element chilren or attributes
- * @param {Element} root 
- * @param {...number | string} args number->child, \@x->attr[x], str->member 
+ * Get Element children or attributes
+ * @param {Element} root
+ * @param {...number | string} args number->child, \@x->attr[x], str->member
  * @returns {Element | string} Empty string for invalid data
  */
 function child(root, ...args) {
@@ -24,21 +24,18 @@ function child(root, ...args) {
             // console.info("children", k, c.children[k])
             /** @ts-ignore */
             c = c.children[k];
-        }
-        else if (c instanceof Element && typeof k === "string" && k[0] === "@") {
+        } else if (c instanceof Element && typeof k === "string" && k[0] === "@") {
             if (k === "@") {
                 /** @ts-ignore */
                 c = Array.from(c.childNodes)
                     .filter(e => e.nodeType === Node.TEXT_NODE)
                     .map(e => e.nodeValue)
                     .join(" ");
-            }
-            else {
+            } else {
                 /** @ts-ignore */
                 c = c.getAttribute(k.substring(1));
             }
-        }
-        else {
+        } else {
             c = c[k];
         }
     }
@@ -66,12 +63,11 @@ function letpubResultParser(html) {
             const fullName = child(e, 1, 3, "@");
             return {
                 title: child(e, 1, 0, "@") + (fullName ? ` (${fullName})` : ""),
-                description: `中科院${child(e, 4, 0, "@")}  ${child(e, 5, "@")}  ${child(e, 3, "@")}`,
+                description: `中科院${child(e, 4, "@")}  ${child(e, 5, "@")}  ${child(e, 3, "@")}`,
                 url: LetpubBaseUrl + child(e, 1, 0, "@href"),
                 selectable: true,
             };
-        }
-        else {
+        } else {
             const td = e.children[0];
             return {
                 title: "更多内容",
@@ -85,8 +81,8 @@ function letpubResultParser(html) {
 }
 
 /**
- * @param {string} searchWord 
- * @param {Preload.SetListCb} cb 
+ * @param {string} searchWord
+ * @param {Preload.SetListCb} cb
  * @returns {void}
  */
 function letpubSearch(searchWord, cb) {
@@ -95,33 +91,22 @@ function letpubSearch(searchWord, cb) {
     }
     console.log("letpub:search", searchWord);
     searchWord = searchWord.toLowerCase().trim();
-    cb([{ title: searchWord + "..." }]);
-    letpubQuery(searchWord, result => {
+    cb([{title: searchWord + "..."}]);
+    axios({
+        url: letpubQueryUrl(searchWord), headers: {"Content-Type": "application/x-www-form-urlencoded"},
+    }).then(response => {
+        const data = response.data;
+        let result = letpubResultParser(data);
         if (result) {
             cb(result);
         } else {
-            cb([{ title: "Not Found." }]);
+            cb([{title: "Not Found."}]);
         }
     });
 }
 
 export function letpubQueryUrl(searchWord) {
     return LetpubBaseUrl + "index.php?page=journalapp&view=search&searchname=" + encodeURIComponent(searchWord).replace(/%20/g, "+");
-}
-
-/**
- * @param {string} searchWord Search word
- * @param {Preload.SetListCb} cb Callback function, return `null` for not found
- * @returns {void}
- */
-export function letpubQuery(searchWord, cb) {
-    axios({
-        url: letpubQueryUrl(searchWord),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    }).then(response => {
-        const data = response.data;
-        cb(letpubResultParser(data))
-    });
 }
 
 /** @type {Preload.ListArgs} */
@@ -138,7 +123,7 @@ export const letpub = {
             return;
         }
         window.utools.hideMainWindow();
-        if (item.title != "更多内容") {
+        if (item.title !== "更多内容") {
             window.utools.copyText(item.title);
         }
         window.utools.shellOpenExternal(item.url);

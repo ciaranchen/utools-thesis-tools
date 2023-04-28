@@ -1,7 +1,7 @@
 // @ts-check
-import { ccfData } from "./ccf"
-import { letpubQueryUrl, letpubQuery } from "./letpub"
-import { rs as replaceSeq } from "./utils"
+import {ccfData} from "./ccf"
+import {letpubQueryUrl} from "./letpub"
+import {rs as replaceSeq} from "./utils"
 // console.info("> cite.js");
 
 // Harvard style

@@ -94,9 +94,10 @@ npm run build:drop # 去掉 console 的开发版
 
 ## Todo 待办
 
-- 知网查是否为中科院核心
-- Engineering Village查是否为EI
-- 常见引用格式转换
-- pdf处理uTools插件中来自应用的情况。
-- Zotero-Search 搜索线上可同步的内容
-- 从引用文献直接向 Zotero 添加内容
+- [ ] 知网查是否为中科院核心
+- [ ] Engineering Village查是否为EI
+- [ ] 统一的期刊、会议查询口
+- [ ] 常见引用格式转换
+- [ ] pdf处理uTools插件中来自应用的情况。
+- [ ] Zotero-Search 搜索线上可同步的内容
+- [ ] 从引用文献直接向 Zotero 添加内容

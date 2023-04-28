@@ -1,139 +1,21 @@
 // 暂时不考虑使用机器学习方法。
-
-String.prototype.trim = function () {
-  return this.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
-}
-
-// Harvard style
-function harvard_style(sentence) {
-  const harvard_match = /^(.*),\s*(\d{4})\.(.*?)\.(.*)$/i
-  const found = sentence.match(harvard_match);
-  // console.log(found);
-  return found ? {
-    author: found[1],
-    year: found[2],
-    title: found[3],
-    info: found[4]
-  } : null;
-}
-
-// GB/T 7714
-function gbt_style(sentence) {
-  // 原本GBT中的[]中可能有两位字母作为标识的，但是可能会与Arxiv的[Cs]冲突。
-  const gbt_match = /^(.*?)\.\s*(.*?)\[(.)\]\s*?[\.\/]\/?\s*((.*?)[,.]\s*.*\s*(\d{4}).*)$/i
-  const found = sentence.match(gbt_match);
-  // console.log(found);
-  let res = found ? {
-    cite: "GBT 7714",
-    author: found[1],
-    year: found[6],
-    title: found[2],
-    info: found[4],
-    type: found[3],
-  } : null;
-  if (res && res.type === 'J') {
-    res.publisher = found[5];
-    if (res.publisher.match(/^arxiv/ig)) {
-      res.publisher = 'ArXiv';
-    }
-  }
-  if (res && res.type === 'C') {
-    let conf_text = found[5];
-    // 去除括号中的内容
-    conf_text = conf_text.replace(/\(.*\)/g, '').replace(/\{.*\}/g, '').replace(/\[.*\]/g, '');
-    // 去除一些经常出现，但是可能导致错误的名词
-    conf_text = conf_text.replace(/\d{4}/g, '').replace('IEEE', '').replace('ACM', '').replace('Workshops', '');
-    // console.log(conf_text);
-    res.conference = conf_text.trim();
-  }
-  return res;
-}
-
-// MLA
-function mla_style(sentence) {
-  sentence = sentence.replace(/Vol\.\s*\d{4}\./g, '')
-  const mla_match = /^(.*?)\.\s*[“"](.*?)["”]\s*((.*?)(([,\.]\s+\d{4})|(\(\d{4}\))).*?)$/i
-  const found = sentence.match(mla_match);
-  // console.log(found);
-  if (!found) return null;
-  let years = found[5].replace(/[^\d]/g, '');
-  let res = {
-    cite: "MLA",
-    author: found[1],
-    year: years,
-    title: found[2],
-    info: found[3],
-  }
-  if (found[4].match(/^arxiv/ig)) {
-    res.publisher = 'ArXiv';
-    return res;
-  }
-  // Journal or Conference
-  let text = found[4];
-  // 去除括号中的内容
-  text = text.replace(/\(.*\)/g, '').replace(/\{.*\}/g, '').replace(/\[.*\]/g, '');
-  // 取前半截
-  text = text.split(/[,\.]/g)[0];
-  // 过滤标点符号
-  text = text.replace(/[\~\`\!\@\#\$\%\^\&\*\(\)\-\_\+\=\\\\[\]\{\}\;\"\'\,\<\.\>\/\?]/g, "");
-  // 过滤数字
-  text = text.replace(/(In\s)?\d{4}/ig, '').replace(/\d/g, '');
-  // 去除一些经常出现，但是可能导致错误的名词
-  text = text.replace(/\d{4}/g, '').replace('IEEE', '').replace('ACM', '').replace('Workshops', '');
-  if (text.includes('onference')) {
-    res.conference = text.trim();
-    return res;
-  }
-  res.unknown = text.trim();
-  return res;
-}
-
-// APA
-function apa_style(sentence) {
-  sentence = sentence.replace(/Vol\.\s*\d{4}\./g, '')
-  const apa_match = /^(.*)\.\s*\((\d{4})(,\s*\w+)?\)\.\s*(.*?)\.\s*(.*)$/i
-  const found = sentence.match(apa_match);
-  // console.log(found);
-  if (!found) return null;
-  let res = {
-    cite: "APA",
-    author: found[1],
-    year: found[2],
-    title: found[4],
-    info: found[5],
-  };
-  if (found[5].match(/^arxiv/ig)) {
-    res.publisher = 'ArXiv';
-    return res;
-  }
-  // Journal or Conference
-  let text = found[5];
-  // 去除括号中的内容
-  text = text.replace(/\(.*\)/g, '').replace(/\{.*\}/g, '').replace(/\[.*\]/g, '');
-  // 取前半截
-  text = text.split(/[,\.]/g)[0];
-  // 过滤标点符号
-  text = text.replace(/[\~\`\!\@\#\$\%\^\&\*\(\)\-\_\+\=\\\\[\]\{\}\;\"\'\,\<\.\>\/\?]/g, "");
-  // 过滤数字
-  text = text.replace(/(In\s)?\d{4}/ig, '').replace(/\d/g, '');
-  // 去除一些经常出现，但是可能导致错误的名词
-  text = text.replace(/\d{4}/g, '').replace('IEEE', '').replace('ACM', '').replace('Workshops', '');
-  if (text.includes('onference')) {
-    res.conference = text.trim();
-    return res;
-  }
-  res.unknown = text.trim();
-  return res;
-}
+const cite = require('../src/cite_parse');
 
 function cite_parse(input) {
-  let style_functions = [harvard_style, gbt_style, mla_style, apa_style];
-  for (let i = 0; i < style_functions.length; i++) {
-    let res = style_functions[i](input);
-    if (res) {
-      return res;
+    let infos = [];
+    for (const name in cite.CiteStyles) {
+        // console.log(name)
+        const res = cite.CiteStyles[name](input);
+        if (res) {
+            infos.push({
+                title: name + " 引用格式",
+                description: res.title,
+                res: res,
+                cite: "unknown"
+            });
+        }
     }
-  }
+    return infos
 }
 
 console.log("Testing regex pattern... from Zotero")
@@ -146,6 +28,8 @@ console.log(cite_parse("Yang B, Yih W, He X, 等. Embedding Entities and Relatio
 
 // arXiv论文、期刊论文、会议论文
 console.log("Testing regex pattern... from Google Scholar")
+// Harvard
+console.log(cite_parse("Kandel, E., 2012. The age of insight: The quest to understand the unconscious in art, mind, and brain, from Vienna 1900 to the present. Random House."));
 // GB/T 7714
 console.log(cite_parse("Yang B, Yih W, He X, et al. Embedding entities and relations for learning and inference in knowledge bases[J]. arXiv preprint arXiv:1412.6575, 2014."))
 console.log(cite_parse("Gourisetti S N G, Mylrea M, Patangia H. Cybersecurity vulnerability mitigation framework through empirical paradigm: Enhanced prioritized gap analysis[J]. Future Generation Computer Systems, 2020, 105: 410-431."))
@@ -168,7 +52,7 @@ console.log(cite_parse("Neumeyer, L., Robbins, B., Nair, A., & Kesari, A. (2010,
 
 // user input as test case.
 if (process.argv.length > 2) {
-  console.log("Testing regex pattern .... from user input");
-  let input = process.argv.slice(2).join(' ');
-  console.log(cite_parse(input));
+    console.log("Testing regex pattern .... from user input");
+    let input = process.argv.slice(2).join(' ');
+    console.log(cite_parse(input));
 }

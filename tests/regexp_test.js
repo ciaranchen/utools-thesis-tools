@@ -32,6 +32,11 @@ console.log(cite_parse("Yang, Bishan, et al. “Embedding Entities and Relations
 console.log(cite_parse("Yang, B., Yih, W., He, X., Gao, J., & Deng, L. (2015). Embedding Entities and Relations for Learning and Inference in Knowledge Bases. ArXiv:1412.6575 [Cs]. http://arxiv.org/abs/1412.6575", "APA"))
 // China National Standard GB/T 7714-1987 (numeric, 中文)
 console.log(cite_parse("Yang B, Yih W, He X, 等. Embedding Entities and Relations for Learning and Inference in Knowledge Bases[J]. arXiv:1412.6575 [cs], 2015.", "GB/T7714"));
+// IEEE
+console.log(cite_parse("项威, “事件知识图谱构建技术与应用综述,” 计算机与现代化, no. 01, pp. 10–16, 2020.", "IEEE"))
+console.log(cite_parse("S.K. Chan, W. Lam, and X. Yu, “A Cascaded Approach to Biomedical Named Entity Recognition Using a Unified Model,” in Seventh IEEE International Conference on Data Mining (ICDM 2007), Oct. 2007, pp. 93–102. doi: 10/bkc887.", "IEEE"))
+// ACM
+console.log(cite_parse("K. Bollacker, C. Evans, P. Paritosh, T. Sturge, and J. Taylor. Freebase: a collaboratively created graph database for structuring human knowledge. In Proceedings of the 2008 ACM SIGMOD international conference on Management of data, 2008.", "ACM"))
 
 
 console.log("Testing regex pattern... from Google Scholar")

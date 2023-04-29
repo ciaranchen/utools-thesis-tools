@@ -37,7 +37,7 @@ function apa_style(sentence) {
 
 // IEEE
 function ieee_style(sentence) {
-    const ieee_match = /^$/u
+    const ieee_match = /^(\[(?<number>\d+)\]\s*)?(?<author>[\u4E00-\u9FFFA-Za-z\s.]+(,[\u4E00-\u9FFFA-Za-z\s.&]+)*)\p{P}\s*[“"](?<title>[\u4E00-\u9FFFA-Za-z\s\p{P}\p{S}\d]+)["”]\s*(?<publisher>[\u4E00-\u9FFFA-Za-z\s\P{S}\p{P}\d]+)\.?$/u;
     const found = sentence.match(ieee_match);
     // console.log(found);
     return found ? found.groups : null;
@@ -45,7 +45,7 @@ function ieee_style(sentence) {
 
 // ACM
 function acm_style(sentence) {
-    const acm_match = /^$/u
+    const acm_match = /^(\[(?<number>\d+)\]\s*)?(?<author>[\u4E00-\u9FFFA-Za-z\s.]+(,[\u4E00-\u9FFFA-Za-z\s.&]+)*)\.?\s*(?<title>[\u4E00-\u9FFFA-Za-z\s\p{P}\p{S}\d]+)\.\s*(?<publisher>[\u4E00-\u9FFFA-Za-z\s\P{S}\p{P}\d]+)\.?$/u;
     const found = sentence.match(acm_match);
     // console.log(found);
     return found ? found.groups : null;

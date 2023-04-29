@@ -27,67 +27,67 @@ function guessCcf(title) {
 }
 
 async function generateInfo(res, cite_style, cb) {
-    console.log(res);
+    // console.log(res);
     const title = res.title.trim();
     /** @type {{title: string, [index: string]: any}[]} */
-    let info = [
-        {
-            title: title,
-            description: "跳转谷歌学术搜索...",
-            url: "https://scholar.google.com/scholar?q=" + encodeURIComponent(title).replace(/%20/g, "+"),
-            cite: "google-scholar"
-        },
-        {title: "选择此项复制标题", description: title, cite: cite_style},
-        {title: "作者", description: res.author, cite: cite_style},
-        {title: "年份", description: res.year, cite: cite_style},
-        {title: "其他信息", description: res.info, cite: cite_style}
-    ];
+    let info = [{
+        title: title,
+        description: "跳转谷歌学术搜索...",
+        url: "https://scholar.google.com/scholar?q=" + encodeURIComponent(title).replace(/%20/g, "+"),
+        cite: "google-scholar"
+    }, {title: "选择此项复制标题", description: title, cite: cite_style}, {
+        title: "作者", description: res.author, cite: cite_style
+    }, {
+        title: "出版商信息", description: res.publisher, cite: cite_style
+    }];
     if (res.type) {
         let cite_content_type = res.type === "J" ? "期刊" : res.type === "C" ? "会议" : "其它";
         info.push({title: "类型", description: cite_content_type, cite: cite_style});
     }
-    if (typeof res.publisher === "string" && res.publisher) {
-        if (res.publisher === "ArXiv") {
-            info.push({
-                title: "出版商: " + res.publisher,
-                description: res.publisher,
-                cite: cite_style
-            });
-        } else {
-            const searchWord = res.publisher.trim();
-            info.push({
-                title: "期刊: " + searchWord,
-                description: "跳转Letpub搜索...",
-                cite: "letpub",
-                url: letpubQueryUrl(searchWord)
-            });
-            const result = guessCcf(searchWord);
-            if (result) {
-                info.push(result);
-            }
-            // no await here
-            letpubQuery(searchWord, result => {
-                if (result) {
-                    result[0].title += " (LetPub Guess)";
-                    info.push(result[0]);
-                }
-                cb(info);
-            });
-        }
-    } else if (res.conference) {
-        const searchWord = res.conference.trim();
-        info.push({title: "会议", description: searchWord, cite: cite_style});
-        const result = guessCcf(searchWord);
-        if (result) {
-            info.push(result);
-        }
-    } else {
-        info.push({
-            title: "未知类型: " + res.unknown,
-            description: "抱歉无法识别此文献为期刊或会议。如果您认为这是一个BUG，请在插件评论区反馈"
-        })
-        return
+    if (res.year) {
+        info.push({title: "年份", description: res.year, cite: cite_style});
     }
+    // TODO: 尝试解析出版商信息（通过搜索）
+
+    // if (typeof res.publisher === "string" && res.publisher) {
+    //     if (res.publisher === "ArXiv") {
+    //         info.push({
+    //             title: "出版商: " + res.publisher, description: res.publisher, cite: cite_style
+    //         });
+    //     } else {
+    //         const searchWord = res.publisher.trim();
+    //         info.push({
+    //             title: "期刊: " + searchWord,
+    //             description: "跳转Letpub搜索...",
+    //             cite: "letpub",
+    //             url: letpubQueryUrl(searchWord)
+    //         });
+    //         const result = guessCcf(searchWord);
+    //         if (result) {
+    //             info.push(result);
+    //         }
+    //         // // no await here
+    //         // letpubQuery(searchWord, result => {
+    //         //     if (result) {
+    //         //         result[0].title += " (LetPub Guess)";
+    //         //         info.push(result[0]);
+    //         //     }
+    //         //     cb(info);
+    //         // });
+    //     }
+    // } else if (res.conference) {
+    //     const searchWord = res.conference.trim();
+    //     info.push({title: "会议", description: searchWord, cite: cite_style});
+    //     const result = guessCcf(searchWord);
+    //     if (result) {
+    //         info.push(result);
+    //     }
+    // } else {
+    //     info.push({
+    //         title: "未知类型: " + res.unknown, description: "抱歉无法识别此文献为期刊或会议。如果您认为这是一个BUG，请在插件评论区反馈"
+    //     })
+    //     return
+    // }
     cb(info);
 }
 
@@ -101,7 +101,6 @@ function citeSelectCallback(item) {
     }
     window.utools.outPlugin();
 }
-
 
 
 export class CiteStyled {
@@ -137,21 +136,23 @@ export class CiteStyled {
 /** @type {Preload.ListArgs} */
 export const citeUnknown = {
     enter(action, cb) {
-        const text = replaceSeq(action.payload, [
-            [/[．。]/g, "."],
-            [/，/g, ","],
-            [/［/g, "["],
-            [/］/g, "]"],
-            [/^[\(\[]\d+[\(\]]/, ""],
-        ]);
+        const text = replaceSeq(action.payload, [[/[．。]/g, "."], [/，/g, ","], [/［/g, "["], [/］/g, "]"], [/^[\(\[]\d+[\(\]]/, ""],]);
         console.log("citeUnk:enter", text);
         let infos = [];
         for (const name in CiteStyles) {
             const res = CiteStyles[name](text);
             if (res) {
+                let publisher = res.publisher;
+                if ("year" in res) {
+                    publisher += ` (${res.year})`;
+                }
+                if ("type" in res) {
+                    publisher += ` [${res.type}]`;
+                }
+
                 infos.push({
-                    title: name + " 引用格式",
-                    description: res.title,
+                    title: `${name} 引用格式 | ${res.title}`,
+                    description: `${res.author} | ${publisher}`,
                     res: res,
                     cite: "unknown"
                 });
@@ -160,19 +161,12 @@ export const citeUnknown = {
         console.log("citeUnk:infos", infos);
         if (infos.length === 0) {
             cb([{
-                title: "未检出引用，可能的原因如下："
-            }, {
-                title: "未支持的引用类型",
-                description: "可能您查询的引用类型不是MLA、APA、GB/T7714类型的，后期将尝试添加更多支持的引用类型"
-            }, {
-                title: "出现了BUG（更可能的情况）",
-                description: "出现问题也是难免的啦，首先为带来的不便向您卖个萌。如果您希望帮助我修复此问题，请在插件评论区反馈。"
+                title: "未检出引用 / 未支持的引用类型", description: "我们暂时无法解析这个引用对应的信息"
             }]);
         } else {
             cb(infos);
         }
-    },
-    select(action, item, cb) {
+    }, select(action, item, cb) {
         if (item.cite === "unknown") {
             generateInfo(item.res, item.cite, cb);
         } else {

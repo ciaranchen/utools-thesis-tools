@@ -82,7 +82,7 @@
         {
           "type": "regex",
           "label": "解析GB/T 7714引用",
-          "match": "/^(.*?)\\.\\s*(.*?)\\[(.{1,2})\\]\\s*?[\\.\\/]\\/?\\s*((.*?),\\s*(\\d{4}).*)$/i"
+          "match": "/^(\\[(?<number>\\d+)\\]\\s*)?(?<author>[\\u4E00-\\u9FFFA-Za-z\\s.]+(,[\\u4E00-\\u9FFFA-Za-z\\s.]+)*)\\.\\s*(?<title>[\\u4E00-\\u9FFFA-Za-z\\s\\p{S}\\p{P}\\d]+)\\[(?<type>.+)\\][\\.(//)]\\s*(?<publisher>[\\u4E00-\\u9FFFA-Za-z\\s\\P{S}\\p{P}\\d]+)\\.?$/u"
         }
       ]
     },
@@ -93,7 +93,7 @@
         {
           "type": "regex",
           "label": "解析MLA引用",
-          "match": "/^(.*?)[\\.]\\s*[“\"](.*?)[\"”]\\s*(.*?(([,\\.]\\s+\\d{4})|(\\(\\d{4}\\))).*?)$/i"
+          "match": "/^(\\[(?<number>\\d+)\\]\\s*)?(?<author>[\\u4E00-\\u9FFFA-Za-z\\s.]+(,[\\u4E00-\\u9FFFA-Za-z\\s.&]+)*)\\s*[“\"](?<title>[\\u4E00-\\u9FFFA-Za-z\\s\\p{P}\\p{S}\\d]+)[\"”]\\p{P}?\\s*(?<publisher>[\\u4E00-\\u9FFFA-Za-z\\s\\P{S}\\p{P}\\d]+)\\.?$/u"
         }
       ]
     },
@@ -104,7 +104,18 @@
         {
           "type": "regex",
           "label": "解析APA引用",
-          "match": "/^(.*)\\.\\s*\\((\\d{4})(,\\s*\\w+)?\\)\\.\\s*(.*?)\\.\\s*(.*)$/i"
+          "match": "/^(\\[(?<number>\\d+)\\]\\s*)?(?<author>[\\u4E00-\\u9FFFA-Za-z\\s.]+(,[\\u4E00-\\u9FFFA-Za-z\\s.&]+)*)\\p{P}?\\s*\\((?<year>[\\d\\sA-Za-z,]+)\\)\\.\\s*(?<title>[\\u4E00-\\u9FFFA-Za-z\\s\\p{S}\\d:-]+)\\.\\s*(?<publisher>[\\u4E00-\\u9FFFA-Za-z\\s\\P{S}\\p{P}\\d]+)\\.?(?:\\s*\\bAccessed\\s*(\\d{1,2}\\s\\w{3}\\.\\s\\d{4})\\b)?$/u"
+        }
+      ]
+    },
+    {
+      "code": "ieee_cite",
+      "explain": "匹配有可能不准确。若结果不准确，请使用「未知引用」",
+      "cmds": [
+        {
+          "type": "regex",
+          "label": "解析IEEE引用",
+          "match": "/^(\\[(?<number>\\d+)\\]\\s*)?(?<author>[\\u4E00-\\u9FFFA-Za-z\\s.]+(,[\\u4E00-\\u9FFFA-Za-z\\s.&]+)*)\\p{P}\\s*[“\"](?<title>[\\u4E00-\\u9FFFA-Za-z\\s\\p{P}\\p{S}\\d]+)[\"”]\\s*(?<publisher>[\\u4E00-\\u9FFFA-Za-z\\s\\P{S}\\p{P}\\d]+)\\.?$/u"
         }
       ]
     }

@@ -528,7 +528,7 @@ n,a,name,pub,url,tier,type,tp
 527,ECAI,European Conference on Artificial Intelligence,IOS Press,https://dblp.org/db/conf/ecai,B,C,AI
 528,ECCV,European Conference on Computer Vision,Springer,https://dblp.org/db/conf/eccv,B,C,AI
 529,ICRA,IEEE International Conference on Robotics and Automation,IEEE,https://dblp.org/db/conf/icra,B,C,AI
-530,ICAPS,International Conference on Automated Planning and Scheduling,AAAI,https://dblp.org/db/conf/aips,B,C,AI
+530,ICAPS,International Conference on Automated Planning and Scheduling,AAAI,https://dblp.org/db/conf/icaps,B,C,AI
 531,ICCBR,International Conference on Case-Based Reasoning,Springer,https://dblp.org/db/conf/iccbr,B,C,AI
 532,COLING,International Conference on Computational Linguistics,International Committee on Computational Linguistics,https://dblp.org/db/conf/coling,B,C,AI
 533,KR,International Conference on Principles of Knowledge Representation and Reasoning,Morgan Kaufmann,https://dblp.org/db/conf/kr,B,C,AI

@@ -22,12 +22,27 @@ const TierMap = ["A", "B", "C"];
 const TypeMap = ["会议", "期刊"];
 
 /**
+ * @param {string} s 
+ * @param {number} length 
+ */
+function strSlice(s, length) {
+    if (s.length <= length) {
+        return s;
+    }
+    else if (length <= 3) {
+        return s.substring(0, length);
+    }
+    else {
+        return s.substring(0, length - 3) + "...";
+    }
+}
+
+/**
  * @param {CsvDataEnRow} row
  * @returns {CcfItem}
  */
 function ccfEnParser(row) {
-    const pub = PublisherMap[row.pub] ?? row.pub;
-    const publisher = pub.length <= 16 ? pub : (pub.substring(0, 16) + "...");
+    const publisher = strSlice(PublisherMap[row.pub] ?? row.pub, 30);
     const url = row.url.replace("$dblpc", DblpBaseUrl + "conf").replace("$dblpj", DblpBaseUrl + "journals");
     return {
         title: row.a ? `${row.a} (${row.name})` : row.name,
@@ -42,7 +57,7 @@ function ccfEnParser(row) {
  * @returns {CcfItem}
  */
 function ccfCnParser(row) {
-    const publisher = row.pub.length <= 20 ? row.pub : (row.pub.substring(0, 20) + "...");
+    const publisher = strSlice(row.pub, 20);
     return {
         title: row.name,
         description: `CCF-T${row.i}  ${LangMap[row.l]}  ${row.c}  ${publisher}`,

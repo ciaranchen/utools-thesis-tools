@@ -2,12 +2,10 @@
     "compilerOptions": {
         "target": "ES6",
         "moduleResolution": "node",
+        "types": ["utools-api-types"]
     },
     "exclude": [
         "dist",
         "node_modules"
-    ],
-    "files": [
-        "node_modules/utools-api-types/index.d.ts"
     ]
 }

@@ -69,6 +69,7 @@ Open source at [github.com/ciaranchen](https://github.com/ciaranchen/utools-thes
 - CoLi: Computational Linguistics
 - EC: Evolutionary Computation
 - JAR: Journal of Automated Reasoning
+- BIB: Briefings in Bioinformatics
 
 移除了部分会议期刊的缩写：
 - Algorithmica

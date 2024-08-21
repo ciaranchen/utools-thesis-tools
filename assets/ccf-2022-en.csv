@@ -140,7 +140,7 @@ n,a,name,pub,url,tier,type,tp
 139,IM,IFIP/IEEE International Symposium on Integrated Network Management,IFIP/IEEE,https://dblp.org/db/conf/im,C,C,CN
 140,MSN,"International Conference on Mobility, Sensing and Networking",IEEE,https://dblp.org/db/conf/msn,C,C,CN
 141,MSWiM,"International Conference on Modeling, Analysis and Simulation of Wireless and Mobile Systems",ACM,https://dblp.org/db/conf/mswim,C,C,CN
-142,WASA,"International Conference on Wireless Algorithms, Systems, and Applications",Springer,https://dblp.org/db/conf/wasa,C,C,CN
+142,WASA,International Conference on Wireless Artificial Intelligent Computing Systems and Applications,Springer,https://dblp.org/db/conf/wasa,C,C,CN
 143,HotNets,ACM The Workshop on Hot Topics in Networks,ACM,https://dblp.org/db/conf/hotnets,C,C,CN
 144,APNet,Asia-Pacific Workshop on Networking,ACM,https://dblp.org/db/conf/apnet,C,C,CN
 145,TDSC,IEEE Transactions on Dependable and Secure Computing,IEEE,https://dblp.org/db/journals/tdsc,A,J,IS
@@ -229,7 +229,7 @@ n,a,name,pub,url,tier,type,tp
 228,PACM PL,Proceedings of the ACM on Programming Languages,ACM,https://dblp.org/db/journals/pacmpl,C,J,SE
 229,PLDI,ACM SIGPLAN Conference on Programming Language Design and Implementation,ACM,https://dblp.org/db/conf/pldi,A,C,SE
 230,POPL,ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages,ACM,https://dblp.org/db/conf/popl,A,C,SE
-231,FSE/ESEC,ACM Joint European Software Engineering Conference and Symposium on the Foundations of Software Engineering,ACM,https://dblp.org/db/conf/sigsoft,A,C,SE
+231,FSE,ACM International Conference on the Foundations of Software Engineering,ACM,https://dblp.org/db/conf/sigsoft,A,C,SE
 232,SOSP,ACM Symposium on Operating Systems Principles,ACM,https://dblp.org/db/conf/sosp,A,C,SE
 233,OOPSLA,"Conference on Object-Oriented Programming Systems, Languages, and Applications",ACM,https://dblp.org/db/conf/oopsla,A,C,SE
 234,ASE,International Conference on Automated Software Engineering,IEEE/ACM,https://dblp.org/db/conf/kbse,A,C,SE
@@ -267,7 +267,7 @@ n,a,name,pub,url,tier,type,tp
 266,SCAM,IEEE International Working Conference on Source Code Analysis and Manipulation,IEEE,https://dblp.org/db/conf/scam,C,C,SE
 267,COMPSAC,International Computer Software and Applications Conference,IEEE,https://dblp.org/db/conf/compsac,C,C,SE
 268,ICFEM,International Conference on Formal Engineering Methods,Springer,https://dblp.org/db/conf/icfem,C,C,SE
-269,SCC,IEEE International Conference on Services Computing,IEEE,https://dblp.org/db/conf/IEEEscc,C,C,SE
+269,SSE,IEEE International Conference on Software Services Engineering,IEEE,https://dblp.org/db/conf/IEEEscc,C,C,SE
 270,ICSSP,International Conference on Software and System Process,ACM,https://dblp.org/db/conf/ispw,C,C,SE
 271,SEKE,International Conference on Software Engineering and Knowledge Engineering,KSI,https://dblp.org/db/conf/seke,C,C,SE
 272,QRS,"International Conference on Software Quality, Reliability and Security",IEEE,https://dblp.org/db/conf/qrs,C,C,SE
@@ -575,7 +575,7 @@ n,a,name,pub,url,tier,type,tp
 574,UIST,ACM Symposium on User Interface Software and Technology,ACM,https://dblp.org/db/conf/uist,A,C,HC
 575,GROUP,ACM International Conference on Supporting Group Work,ACM,https://dblp.org/db/conf/group,B,C,HC
 576,IUI,ACM International Conference on Intelligent User Interfaces,ACM,https://dblp.org/db/conf/iui,B,C,HC
-577,ITS,ACM International Conference on Interactive Tabletops and Surfaces,ACM,https://dblp.org/db/conf/tabletop,B,C,HC
+577,ISS,ACM International Conference on Interactive Surfaces and Spaces,ACM,https://dblp.org/db/conf/tabletop,B,C,HC
 578,ECSCW,European Conference on Computer Supported Cooperative Work,Springer,https://dblp.org/db/conf/ecscw,B,C,HC
 579,PERCOM,IEEE International Conference on Pervasive Computing and Communications,IEEE,https://dblp.org/db/conf/percom,B,C,HC
 580,MobileHCI,ACM International Conference on Mobile Human-Computer Interaction,ACM,https://dblp.org/db/conf/mhci,B,C,HC
@@ -597,7 +597,7 @@ n,a,name,pub,url,tier,type,tp
 596,Proc. IEEE,Proceedings of the IEEE,IEEE,https://dblp.org/db/journals/pieee,A,J,SN
 597,SCIS,Science China Information Sciences,Science in China Press/Springer,https://dblp.org/db/journals/chinaf,A,J,SN
 598,,Bioinformatics,Oxford University Press,https://dblp.org/db/journals/bioinformatics,B,J,SN
-599,,Briefings in Bioinformatics,Oxford University Press,https://dblp.org/db/journals/bib,B,J,SN
+599,BIB,Briefings in Bioinformatics,Oxford University Press,https://dblp.org/db/journals/bib,B,J,SN
 600,,Cognition,Elsevier,http://www.journals.elsevier.com/cognition,B,J,SN
 601,TASAE,IEEE Transactions on Automation Science and Engineering,IEEE,https://dblp.org/db/journals/tase,B,J,SN
 602,TGARS,IEEE Transactions on Geoscience and Remote Sensing,IEEE,https://dblp.org/db/journals/tgrs,B,J,SN

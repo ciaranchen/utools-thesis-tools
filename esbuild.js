@@ -81,18 +81,14 @@ const Mode = ModeMap[process.env.NODE_ENV] || 0;
     }
 
     /**
-     * redirect `mime-db` and `axios`
+     * redirect axios
      * @param {object} options
      * @returns {import("esbuild").Plugin}
      */
     function replPkg(options = {}) {
         return {
-            name: "replace-mime-db",
+            name: "replace-package",
             setup(build) {
-                build.onResolve({ filter: /^mime-db$/ }, args => {
-                    console.log("[replace] mime-db -> src/mimedb.js");
-                    return { path: path.join(__dirname, "src/mimedb.js") };
-                });
                 if (Mode >= 2) {
                     build.onResolve({ filter: /^axios$/ }, args => {
                         console.log("[replace] axios -> node_modules/axios/dist/esm/axios.min");
